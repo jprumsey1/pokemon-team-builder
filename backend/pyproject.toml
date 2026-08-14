@@ -4,13 +4,16 @@ version = "0.1.0"
 description = "Pokemon team builder — FastAPI + SQLAlchemy 2.0 async + Postgres"
 requires-python = ">=3.14"
 dependencies = [
-    "fastapi>=0.141.1",
-    "uvicorn[standard]>=0.52.3",
+    # [all] over [standard] because it carries itsdangerous, which SessionMiddleware
+    # imports. The unused extras it brings cost less than tracking them by hand.
+    "fastapi[all]>=0.141.1",
     "sqlalchemy[asyncio]>=2.0.52",
     "asyncpg>=0.31.0",
     "pydantic-settings>=2.15.0",
     "alembic>=1.19.1",
     "httpx>=0.28.1",
+    # 4.x is an API rewrite, so an unpinned upgrade breaks scheduler.py at import.
+    "apscheduler>=3.11.3,<4",
 ]
 
 [build-system]

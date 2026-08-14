@@ -17,5 +17,22 @@ services:
       retries: 15
       start_period: 5s
 
+  api:
+    build: ./backend
+    container_name: pokemon-team-builder-api
+    profiles: ["container"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ptb:ptb@db:5432/ptb
+      SESSION_SECRET: dev-secret
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/app:/app/app
+    # `fastapi dev` binds 127.0.0.1 by default, unreachable from host when running in container
+    command: fastapi dev app/main.py --host 0.0.0.0
+
 volumes:
   ptb-pgdata:

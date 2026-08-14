@@ -16,14 +16,14 @@ class Settings(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
-    # Matches docker-compose.yml, so local dev needs no .env.
+    # Matches docker-compose.yml
     database_url: str = "postgresql+asyncpg://ptb:ptb@localhost:5432/ptb"
 
     @field_validator("database_url")
     @classmethod
     def _require_async_driver(cls, v: str) -> str:
-        # Hosted providers hand out postgres:// or postgresql://; without the
-        # asyncpg driver SQLAlchemy fails with an opaque "Can't load plugin".
+        # Hosted providers might use postgres:// or postgresql://; 
+        # ensure the asyncpg driver is used
         if v.startswith("postgres://"):
             v = v.replace("postgres://", "postgresql://", 1)
         if v.startswith("postgresql://"):
