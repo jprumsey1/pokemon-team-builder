@@ -6,7 +6,7 @@ from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db import engine, get_db
+from app.dependencies import engine, get_db
 
 
 @asynccontextmanager

@@ -12,6 +12,10 @@ This belongs in plan documents and finalized overview in `README.md`.
 
 Don't add to the README.md unless asked. This is technical documentation meant to be written by hand.
 
+## API
+
+During development and design, defer to standards and suggestions from https://fastapi.tiangolo.com/
+
 ## Database
 
 Alembic is used for schema migrations in `backend/app/models.py`.
