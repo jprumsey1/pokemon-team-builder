@@ -1,12 +1,12 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Annotated
 
-from fastapi import Depends, FastAPI
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import FastAPI
+from starlette.middleware.sessions import SessionMiddleware
 
-from app.dependencies import engine, get_db
+from app.api.main import api_router
+from app.core.config import settings
+from app.core.db import engine
 
 
 @asynccontextmanager
@@ -16,10 +16,5 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 
 
 app = FastAPI(title="Pokémon Team Builder", lifespan=lifespan)
-
-
-@app.get("/api/health")
-async def health(db: Annotated[AsyncSession, Depends(get_db)]) -> dict[str, str]:
-    """Liveness + database reachability."""
-    await db.execute(text("SELECT 1"))
-    return {"status": "ok", "database": "ok"}
+app.add_middleware(SessionMiddleware, secret_key=settings.session_secret)
+app.include_router(api_router, prefix="/api")

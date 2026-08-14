@@ -27,6 +27,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://ptb:ptb@db:5432/ptb
       SESSION_SECRET: dev-secret
+      ADMIN_SECRET: dev-admin-secret
     ports:
       - "8000:8000"
     volumes:

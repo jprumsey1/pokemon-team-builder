@@ -8,6 +8,12 @@ Write a comment only when the code is surprising and the surprise isn't
 recoverable by reading it. Do not restate what the line does, and do not put high-level design rationale in source.
 This belongs in plan documents and finalized overview in `README.md`.
 
+## Code Style
+
+Names corresponding to the same domain entity or operation should be consistent. 
+I.e. `sync_pokemon` and `update_pokemon` should be named the same thing if they are the 
+same operation.
+
 ## README
 
 Don't add to the README.md unless asked. This is technical documentation meant to be written by hand.

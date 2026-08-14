@@ -11,9 +11,9 @@ from dataclasses import dataclass
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.pokeapi import PokeAPIClient, id_from_url
-from app.dependencies import SessionLocal, engine
+from app.core.db import session_factory, engine
 from app.models import Pokemon, PokemonChangeEvent, TypeMatchup
+from app.services.pokeapi import PokeAPIClient, id_from_url
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +153,7 @@ async def main() -> None:
     """
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    async with SessionLocal() as session:
+    async with session_factory() as session:
         await sync_type_matchup(session)
         await sync_pokemon(session)
     await engine.dispose()

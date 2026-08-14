@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from app.dependencies import settings
+from app.core.config import settings
 from app.models import Base
 
 SERVER_URL, _ = settings.database_url.rsplit("/", 1)

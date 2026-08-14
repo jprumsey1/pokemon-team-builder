@@ -3,9 +3,9 @@ import pytest
 import respx
 from sqlalchemy import select
 
-from app.core.ingest import sync_pokemon
-from app.dependencies import settings
+from app.core.config import settings
 from app.models import PokemonChangeEvent
+from app.services.ingest import sync_pokemon
 
 
 def stub_pokemon_payload(pokemon_id, name, types, attack):
@@ -32,8 +32,8 @@ def stub_pokemon_payload(pokemon_id, name, types, attack):
 
 @pytest.fixture
 def pokeapi():
-    """Stubs PokéAPI calls. 
-    
+    """Stubs PokéAPI calls.
+
     Yields a mutable {id: payload} that can be re-assigned to simulate upstream changes."""
     payloads = {}
 

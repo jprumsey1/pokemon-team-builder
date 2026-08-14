@@ -1,4 +1,4 @@
-"""Custom HTTP client for PokéAPI including endpoints, retry policy, and concurrency limit."""
+"""HTTP client for PokéAPI including endpoints, retry policy, and concurrency limit."""
 
 import asyncio
 import logging
@@ -6,7 +6,7 @@ from collections.abc import AsyncIterator
 
 import httpx
 
-from app.dependencies import settings
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
