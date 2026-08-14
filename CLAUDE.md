@@ -14,24 +14,8 @@ Don't add to the README.md unless asked. This is technical documentation meant t
 
 ## API
 
-During development and design, defer to standards and suggestions from https://fastapi.tiangolo.com/
+During development and design, defer to standards and suggestions from FastAPI docs https://fastapi.tiangolo.com/.
 
 ## Database
 
-Alembic is used for schema migrations in `backend/app/models.py`.
-
-```bash
-uv run alembic revision --autogenerate -m "..."   # after editing models.py
-uv run alembic upgrade head
-```
-
-Read the generated migration before applying it. Autogenerate cannot detect a
-rename: it emits drop + add, which discards the column's data.
-
-## Running locally
-
-```bash
-docker compose up -d db
-cd backend && uv sync && uv run alembic upgrade head
-uv run uvicorn app.main:app --reload
-```
+Alembic is used for schema migrations in `backend/app/models.py`. Do not run schema generations, let the user do it. 

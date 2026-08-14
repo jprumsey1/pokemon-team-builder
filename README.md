@@ -9,7 +9,11 @@ Postgres runs in a container; the API runs on the host so IDE can own process an
 ```bash
 docker compose up -d  # starts DB only
 cd backend && uv sync && uv run alembic upgrade head # run DB migrations
+uv run python -m app.core.ingest # seed the type chart and Pokémon from PokéAPI
 ```
+
+The seed is just the first sync, so re-running it is safe: it reports what changed and
+writes nothing when nothing did.
 
 To stop it:
 
@@ -25,6 +29,7 @@ keeps port 8000 free for the debugger. Below will run all components in containe
 ```bash
 docker compose --profile container up -d --build # builds images, starts all containers
 docker compose run --rm api alembic upgrade head # run DB migrations
+docker compose run --rm api python -m app.core.ingest # seed from PokéAPI
 ```
 
 To stop it:
@@ -32,6 +37,15 @@ To stop it:
 ```bash
 docker compose --profile container down
 ```
+
+### Tests
+
+```bash
+cd backend && uv run pytest
+```
+
+Needs the database container running. Integration tests for the `ingest` process use their own `ptb_test` database, and will need a database running.
+Others are pure unit tests.
 
 ### Database migrations
 

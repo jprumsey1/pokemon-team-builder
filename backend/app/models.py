@@ -7,16 +7,15 @@ Assumptions:
 """
 
 from datetime import datetime
-from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
     MetaData,
-    Numeric,
     String,
     func,
 )
@@ -151,5 +150,5 @@ class TypeMatchup(Base):
 
     attacking_type: Mapped[str] = mapped_column(String(20), primary_key=True)
     defending_type: Mapped[str] = mapped_column(String(20), primary_key=True)
-    # Numeric not float: 0.5 and 2.0 must multiply exactly.
-    multiplier: Mapped[Decimal] = mapped_column(Numeric(3, 2))
+    # Float is exact here: every multiplier is 0, 1/2, 1 or 2, and so is every product.
+    multiplier: Mapped[float] = mapped_column(Float)
