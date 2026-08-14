@@ -1,0 +1,32 @@
+[project]
+name = "pokemon-team-builder"
+version = "0.1.0"
+description = "Pokemon team builder — FastAPI + SQLAlchemy 2.0 async + Postgres"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.141.1",
+    "uvicorn[standard]>=0.52.3",
+    "sqlalchemy[asyncio]>=2.0.52",
+    "asyncpg>=0.31.0",
+    "pydantic-settings>=2.15.0",
+    "alembic>=1.19.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.pytest.ini_options]
+# pytest-asyncio 1.x: without this, every async test is silently SKIPPED
+# rather than failing, so a green run can mean nothing ran at all.
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]
