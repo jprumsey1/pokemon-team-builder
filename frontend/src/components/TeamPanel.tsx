@@ -2,8 +2,6 @@ import { useState } from "react";
 
 import { useDeleteTeam, useRenameTeam } from "../api/queries";
 import type { Team } from "../api/types";
-import { field } from "../lib/styles";
-import { getMembers } from "../lib/pokemon";
 import { NewTeamForm } from "./NewTeamForm";
 import { PokemonDetail } from "./PokemonDetail";
 import { TeamSlots } from "./TeamSlots";
@@ -31,7 +29,7 @@ export function TeamPanel({
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const renameTeam = useRenameTeam();
   const deleteTeam = useDeleteTeam();
-  const members = getMembers(activeTeam);
+  const members = activeTeam?.members ?? [];
 
   if (teams.length === 0) {
     return (
@@ -46,7 +44,7 @@ export function TeamPanel({
     <div className="space-y-3 rounded-xl bg-white p-4 shadow-sm">
       <div className="flex gap-1">
         <select
-          className={`${field} min-w-0 grow`}
+          className="field min-w-0 grow"
           value={activeTeam?.id ?? ""}
           onChange={(event) => onSelectTeam(Number(event.target.value))}
           aria-label="Active team"

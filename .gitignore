@@ -13,4 +13,6 @@ backend/app/static/
 .idea/
 .vscode/
 
+.githooks/pre-commit
+
 jr_notes.md

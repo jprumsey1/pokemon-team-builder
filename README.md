@@ -1,41 +1,50 @@
 # Pokémon Team Builder
 
-## Development
+## Background Sync Job
 
-### Run locally with debugging
+TODO
 
-Postgres runs in a container; the API runs on the host so IDE can own process and debug.
+## Local Development
+
+This app can be run **(A)** fully in containers or **(B)** with FastAPI and Vite dev servers running on the host.
+
+### Requirements
+- Docker or equivalent
+
+If running outside containers:
+- [uv](https://docs.astral.sh/uv/)
+- Node
+
+### First-time setup
+
+`./setup.sh` applies DB migrations, seeds the type matchups and Pokémon data from PokéAPI, then tears down containers.
+
+These datasets rarely change and re-running is safe (will just request resources from PokéAPI again). Normally, the Pokémon data sync portion runs as a scheduled background job (see [Background Sync Job](#background-sync-job))
+
+You can run the equivalent against a running API as well, which is how data gets seeded data in production.
 
 ```bash
-docker compose up -d  # starts DB only
-cd backend && uv sync && uv run alembic upgrade head # run DB migrations
-uv run python -m app.services.sync # seed the type chart and Pokémon from PokéAPI
+curl -X POST -H "X-Admin-Secret: dev-admin-secret" localhost:8000/api/admin/sync-type-matchup
+curl -X POST -H "X-Admin-Secret: dev-admin-secret" localhost:8000/api/admin/sync
 ```
 
-The seed is just the first sync, so re-running it is safe: it reports what changed and
-writes nothing when nothing did.
+### Startup
 
-To stop it:
-
+**A.** Everything in containers
 ```bash
-docker compose down
+docker compose --profile container up -d --build
+docker compose --profile container down   # stop
 ```
 
-### Running with the API in a container
+or 
 
-The `api` service is behind a Compose profile called `container`, so a plain `docker compose up -d` never starts it. That
-keeps port 8000 free for the debugger. Below will run all components in containers:
-
-```bash
-docker compose --profile container up -d --build # builds images, starts all containers
-docker compose run --rm api alembic upgrade head # run DB migrations
-docker compose run --rm api python -m app.services.sync # seed from PokéAPI
-```
-
-To stop it:
+**B.** API and frontend on the host, DB in a container
 
 ```bash
-docker compose --profile container down
+docker compose up -d
+cd backend && uv sync && uv run fastapi dev app/main.py   # :8000
+cd frontend && npm install && npm run dev                 # :5173
+docker compose down                       # stop
 ```
 
 ### Tests
@@ -44,12 +53,11 @@ docker compose --profile container down
 cd backend && uv run pytest
 ```
 
-Needs the database container running. Integration tests for the `sync` process use their own `ptb_test` database, and will need a database running.
-Others are pure unit tests.
+Integration tests need the database container running and use their own `ptb_test` database. The rest are pure unit tests.
 
 ### Database migrations
 
-[Alembic](https://alembic.sqlalchemy.org/en/latest/tutorial.html) owns the schema and DB migrations should be applied on app startup.
+[Alembic](https://alembic.sqlalchemy.org/en/latest/tutorial.html) owns the schema and migrations are applied manually locally.
 
 After editing `models.py`:
 

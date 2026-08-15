@@ -68,8 +68,8 @@ export const useRenameTeam = () =>
 
 export const useDeleteTeam = () => useTeamMutation(api.deleteTeam);
 
-export const useSetMembers = () =>
+export const useSetTeamMembers = () =>
   useTeamMutation(
     ({ teamId, pokemonIds }: { teamId: number; pokemonIds: number[] }) =>
-      api.setMembers(teamId, pokemonIds),
+      api.setTeamMembers(teamId, pokemonIds),
   );

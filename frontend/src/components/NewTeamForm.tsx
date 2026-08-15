@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import { useCreateTeam } from "../api/queries";
-import { field, primaryButton } from "../lib/styles";
 
 export function NewTeamForm({
   onCreated,
@@ -25,7 +24,7 @@ export function NewTeamForm({
       }}
     >
       <input
-        className={`${field} min-w-0 grow`}
+        className="field min-w-0 grow"
         placeholder="Team name"
         value={name}
         onChange={(event) => setName(event.target.value)}
@@ -34,7 +33,7 @@ export function NewTeamForm({
       <button
         type="submit"
         disabled={!name.trim() || createTeam.isPending}
-        className={`${primaryButton} px-3 py-1.5 text-sm`}
+        className="primary-button px-3 py-1.5 text-sm"
       >
         Create
       </button>

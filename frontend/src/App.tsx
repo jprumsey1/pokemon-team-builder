@@ -1,17 +1,17 @@
 import { useState } from "react";
 
-import { useMe, useSetMembers, useSignOut, useTeams } from "./api/queries";
+import { useMe, useSetTeamMembers, useSignOut, useTeams } from "./api/queries";
 import { AlertBanner } from "./components/AlertBanner";
 import { Pokedex } from "./components/Pokedex";
 import { SignIn } from "./components/SignIn";
 import { TeamPanel } from "./components/TeamPanel";
-import { TEAM_SIZE, getMemberIds } from "./lib/pokemon";
+import { TEAM_SIZE } from "./lib/pokemon";
 
 export default function App() {
   const me = useMe();
   const signOut = useSignOut();
   const teams = useTeams();
-  const setMembersMutation = useSetMembers();
+  const setMembersMutation = useSetTeamMembers();
   const [activeTeamId, setActiveTeamId] = useState<number | null>(null);
 
   if (me.isPending) return <div className="min-h-dvh bg-slate-100" />;
@@ -21,7 +21,7 @@ export default function App() {
   // Falls back to the first team so a deleted or never-chosen active id still lands somewhere.
   const activeTeam =
     all.find((team) => team.id === activeTeamId) ?? all[0] ?? null;
-  const memberIds = getMemberIds(activeTeam);
+  const memberIds = (activeTeam?.members ?? []).map((m) => m.pokemon.id);
 
   const setMembers = (pokemonIds: number[]) => {
     if (activeTeam)
@@ -58,7 +58,7 @@ export default function App() {
           }
           onAdd={(pokemon) => setMembers([...memberIds, pokemon.id])}
         />
-        <aside className="lg:w-80 lg:shrink-0">
+        <aside className="lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:w-80 lg:shrink-0 lg:self-start lg:overflow-y-auto">
           <TeamPanel
             // key: a slot index belongs to one team, so switching teams resets it.
             key={activeTeam?.id}
@@ -71,6 +71,19 @@ export default function App() {
           />
         </aside>
       </main>
+
+      <footer className="border-t border-slate-200 px-4 py-6 text-center text-xs text-slate-500">
+        Pokémon data from{" "}
+        <a
+          className="underline hover:text-slate-900"
+          href="https://pokeapi.co/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          PokéAPI
+        </a>
+        is refreshed daily. Pokémon and Pokémon character names are trademarks of Nintendo.
+      </footer>
     </div>
   );
 }

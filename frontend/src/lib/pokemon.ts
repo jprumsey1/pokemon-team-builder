@@ -1,4 +1,4 @@
-import type { Pokemon, StatKey, Team } from "../api/types";
+import type { Pokemon, StatKey } from "../api/types";
 
 export const STATS: { key: StatKey; label: string; short: string }[] = [
   { key: "hp", label: "HP", short: "HP" },
@@ -65,9 +65,3 @@ export const displayName = (name: string) =>
 
 export const getPokemonTypes = (pokemon: Pokemon) =>
   pokemon.type_2 ? [pokemon.type_1, pokemon.type_2] : [pokemon.type_1];
-
-/** The API returns members ordered by `position`; this is the single source of that order. */
-export const getMembers = (team: Team | null) => team?.members ?? [];
-
-export const getMemberIds = (team: Team | null) =>
-  getMembers(team).map((member) => member.pokemon.id);

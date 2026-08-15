@@ -5,7 +5,7 @@ Trim payloads to data the team builder app cares about.
 Logs what changed as a `PokemonChangeEvent`.
 
 Changes are rare and PokeAPI is a free, public API, so this
-should be run as a periodic background task rather than on every request.
+should be run as a periodic background task.
 """
 
 import asyncio
@@ -15,9 +15,9 @@ from dataclasses import dataclass
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.db import engine, session_factory
+from app.db import engine, session_factory
+from app.lib.pokeapi import PokeAPIClient, id_from_url
 from app.models import Pokemon, PokemonChangeEvent, TypeMatchup
-from app.services.pokeapi import PokeAPIClient, id_from_url
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ MUTABLE_FIELDS = tuple(
 
 @dataclass(slots=True)
 class SyncPokemonResult:
-    checked: int = 0  # ids we attempted, `failed` included
+    checked: int = 0
     inserted: int = 0
     updated: int = 0
     alerted: int = 0  # subset of `updated` that moved an alerting field

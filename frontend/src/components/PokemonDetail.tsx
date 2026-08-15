@@ -23,7 +23,7 @@ export function PokemonDetail({ pokemon }: { pokemon: Pokemon }) {
 
       <div className="space-y-1">
         {STATS.map(({ key, label }) => (
-          <StatBar key={key} label={label} value={pokemon[key]} showLabel />
+          <StatBar key={key} label={label} value={pokemon[key]} />
         ))}
       </div>
     </div>

@@ -1,7 +1,6 @@
 import type { Pokemon } from "../api/types";
 import { STATS, displayName, getPokemonTypes } from "../lib/pokemon";
 import { PokemonSprite } from "./PokemonSprite";
-import { StatBar } from "./StatBar";
 import { TypeChip } from "./TypeChip";
 
 interface Props {
@@ -33,9 +32,12 @@ export function PokemonCard({ pokemon, disabledReason, onAdd }: Props) {
           <TypeChip key={type} type={type} />
         ))}
       </div>
-      <div className="space-y-[2px]">
-        {STATS.map(({ key, label }) => (
-          <StatBar key={key} label={label} value={pokemon[key]} />
+      <div className="grid grid-cols-3 gap-x-1.5 text-[10px] tabular-nums">
+        {STATS.map(({ key, short, label }) => (
+          <div key={key} className="flex justify-between gap-1" title={label}>
+            <span className="text-slate-400">{short}</span>
+            <span className="font-medium text-slate-700">{pokemon[key]}</span>
+          </div>
         ))}
       </div>
     </button>

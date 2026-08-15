@@ -5,9 +5,9 @@ from zoneinfo import ZoneInfo
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from app.core.config import settings
-from app.core.db import session_factory
-from app.services.sync import sync_pokemon
+from app.config import settings
+from app.db import session_factory
+from app.lib.sync import sync_pokemon
 
 SYNC_TIMEZONE = ZoneInfo("America/New_York")
 

@@ -1,5 +1,6 @@
 """User teams, members, and alerts derived from team members."""
 
+import random
 from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 
@@ -8,24 +9,20 @@ from sqlalchemy import delete, exists, select
 from sqlalchemy.orm import joinedload, selectinload
 
 from app.api.dependencies import CurrentUser, SessionDep
-from app.models import Pokemon, PokemonChangeEvent, Team, TeamPokemon
-from app.schemas import AlertOut, TeamIn, TeamMembersIn, TeamOut
+from app.lib.counter_team import TypeMatchupChart, build_counter_team
+from app.models import Pokemon, PokemonChangeEvent, Team, TeamPokemon, TypeMatchup
+from app.schemas import (
+    AlertOut,
+    PokemonOut,
+    TeamIn,
+    TeamMemberOut,
+    TeamMembersIn,
+    TeamOut,
+)
 
 router = APIRouter(tags=["teams"])
 
 ALERT_WINDOW = timedelta(days=7)
-
-
-async def _load_team(db: SessionDep, user_id: int, team_id: int) -> Team:
-    """Select a team belonging to the given user."""
-    team = await db.scalar(
-        select(Team)
-        .where(Team.id == team_id, Team.user_id == user_id)
-        .options(selectinload(Team.members))
-    )
-    if team is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Team not found")
-    return team
 
 
 @router.get("", response_model=list[TeamOut])
@@ -117,3 +114,51 @@ async def list_alerts(
         .options(joinedload(PokemonChangeEvent.pokemon))
     )
     return events.all()
+
+
+@router.post("/{team_id}/counter")
+async def counter_team(
+    team_id: int, user: CurrentUser, db: SessionDep
+) -> list[TeamMemberOut]:
+    """A counter for each member matched by position.
+
+    Not idempotent, may vary on each call."""
+    team = await _load_team(db, user.id, team_id)
+    if not team.members:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "Team has no members to counter"
+        )
+
+    opposing = [member.pokemon for member in team.members]
+    opposing_pokemon_ids = {pokemon.id for pokemon in opposing}
+    candidates = await db.scalars(
+        select(Pokemon).where(
+            Pokemon.is_default, Pokemon.id.notin_(opposing_pokemon_ids)
+        )
+    )
+    chart = await _get_type_matchup_chart(db)
+    picks = build_counter_team(opposing, candidates.all(), chart, random.Random())
+    return [
+        TeamMemberOut(position=member.position, pokemon=PokemonOut.model_validate(pick))
+        for member, pick in zip(team.members, picks, strict=True)
+    ]
+
+
+async def _load_team(db: SessionDep, user_id: int, team_id: int) -> Team:
+    """Select a team belonging to the given user."""
+    team = await db.scalar(
+        select(Team)
+        .where(Team.id == team_id, Team.user_id == user_id)
+        .options(selectinload(Team.members))
+    )
+    if team is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Team not found")
+    return team
+
+
+async def _get_type_matchup_chart(db: SessionDep) -> TypeMatchupChart:
+    """The whole 18x18 chart as chart[attacking][defending]. 324 rows; not worth caching."""
+    chart: TypeMatchupChart = {}
+    for row in await db.scalars(select(TypeMatchup)):
+        chart.setdefault(row.attacking_type, {})[row.defending_type] = row.multiplier
+    return chart

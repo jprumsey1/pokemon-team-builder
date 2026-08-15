@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import { useSignIn } from "../api/queries";
-import { primaryButton } from "../lib/styles";
 
 export function SignIn() {
   const [username, setUsername] = useState("");
@@ -40,7 +39,7 @@ export function SignIn() {
         <button
           type="submit"
           disabled={!username.trim() || signIn.isPending}
-          className={`${primaryButton} w-full py-2 font-medium`}
+          className="primary-button w-full py-2 font-medium"
         >
           {signIn.isPending ? "Signing in…" : "Sign in"}
         </button>

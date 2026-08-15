@@ -1,6 +1,5 @@
 import type { StatKey } from "../api/types";
 import { STATS, TYPES, displayName } from "../lib/pokemon";
-import { field } from "../lib/styles";
 
 export type SortKey = "id" | "name" | StatKey;
 
@@ -36,12 +35,12 @@ export function PokedexControls({
       <input
         type="search"
         placeholder="Search…"
-        className={`${field} grow sm:grow-0`}
+        className="field grow sm:grow-0"
         value={filters.search}
         onChange={(event) => onChange({ search: event.target.value })}
       />
       <select
-        className={field}
+        className="field"
         value={filters.type}
         onChange={(event) => onChange({ type: event.target.value })}
       >
@@ -53,11 +52,11 @@ export function PokedexControls({
         ))}
       </select>
       <select
-        className={field}
+        className="field"
         value={filters.sort}
         onChange={(event) => onChange({ sort: event.target.value as SortKey })}
       >
-        <option value="id">Pokédex number</option>
+        <option value="id">Pokédex Number</option>
         <option value="name">Name A–Z</option>
         {STATS.map(({ key, label }) => (
           <option key={key} value={key}>

@@ -1,4 +1,4 @@
-/** Mirrors backend/app/schemas.py. */
+/** Mirrors backend/app/schemas.py */
 
 export type StatKey =
   "hp" | "attack" | "defense" | "special_attack" | "special_defense" | "speed";

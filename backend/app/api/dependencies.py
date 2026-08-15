@@ -7,8 +7,8 @@ from typing import Annotated
 from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
-from app.core.db import session_factory
+from app.config import settings
+from app.db import session_factory
 from app.models import User
 
 

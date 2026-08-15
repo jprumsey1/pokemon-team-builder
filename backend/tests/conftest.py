@@ -7,7 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.api.dependencies import get_db
-from app.core.config import settings
+from app.config import settings
 from app.main import app
 from app.models import Base, Pokemon
 

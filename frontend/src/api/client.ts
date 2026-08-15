@@ -16,8 +16,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    const message =
-      typeof body?.detail === "string" ? body.detail : response.statusText;
+    const message = typeof body?.detail === "string" ? body.detail : response.statusText;
     throw new ApiError(response.status, message);
   }
   return response.status === 204 ? (undefined as T) : response.json();
@@ -45,7 +44,7 @@ export const renameTeam = (teamId: number, name: string) =>
 export const deleteTeam = (teamId: number) =>
   request<void>(`/teams/${teamId}`, { method: "DELETE" });
 
-export const setMembers = (teamId: number, pokemonIds: number[]) =>
+export const setTeamMembers = (teamId: number, pokemonIds: number[]) =>
   request<Team>(`/teams/${teamId}/members`, {
     method: "PUT",
     ...body({ pokemon_ids: pokemonIds }),

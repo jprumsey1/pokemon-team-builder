@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:18
-    container_name: pokemon-team-builder-db
+    container_name: db
     environment:
       POSTGRES_USER: ptb
       POSTGRES_PASSWORD: ptb
@@ -22,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    container_name: pokemon-team-builder-api
+    container_name: api
     profiles: ["container"]
     depends_on:
       db:
@@ -33,12 +33,6 @@ services:
       ADMIN_SECRET: dev-admin-secret
     ports:
       - "8000:8000"
-    volumes:
-      # Shadows the image's app/static too, so this path serves no SPA — it's for API
-      # work with Vite on the host, which is the documented dev loop anyway.
-      - ./backend/app:/app/app
-    # `fastapi dev` binds 127.0.0.1 by default, unreachable from host when running in container
-    command: fastapi dev app/main.py --host 0.0.0.0
 
 volumes:
   ptb-pgdata:

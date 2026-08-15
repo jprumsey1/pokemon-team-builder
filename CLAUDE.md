@@ -33,6 +33,8 @@ Names corresponding to the same domain entity or operation should be consistent.
 
 Follow the "you aren't gonna need it principle" - don't introduce something new unless we are using it in the feature that's being worked on.
 
+Use "rule of three" when introducing a new function. If similar code is used three or more times, extract it.
+
 ## API
 
 During development and design, defer to standards and suggestions from FastAPI docs https://fastapi.tiangolo.com/.

@@ -3,7 +3,6 @@ import { MAX_STAT } from "../lib/pokemon";
 export function StatBar({
   label,
   value,
-  showLabel = false,
 }: {
   label: string;
   value: number;
@@ -15,17 +14,6 @@ export function StatBar({
       style={{ width: `${(value / MAX_STAT) * 100}%` }}
     />
   );
-
-  if (!showLabel) {
-    return (
-      <div
-        className="h-[3px] rounded-full bg-slate-200"
-        title={`${label} ${value}`}
-      >
-        {bar}
-      </div>
-    );
-  }
 
   return (
     <div className="flex items-center gap-2 text-xs">
