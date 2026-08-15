@@ -29,7 +29,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-dvh bg-slate-100">
+    <div id="top" className="min-h-dvh bg-slate-100">
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
         <h1 className="font-bold text-slate-900">Pokémon Team Builder</h1>
         <div className="flex items-center gap-3 text-sm">
@@ -81,9 +81,17 @@ export default function App() {
           rel="noreferrer"
         >
           PokéAPI
-        </a>
-        is refreshed daily. Pokémon and Pokémon character names are trademarks of Nintendo.
+        </a>.
+        Pokémon and Pokémon character names are trademarks of Nintendo.
       </footer>
+
+      <a
+        href="#top"
+        aria-label="Back to top"
+        className="fixed right-4 bottom-4 rounded-full border border-slate-300 bg-white px-3 py-2 text-sm shadow-md hover:bg-slate-50"
+      >
+        ↑ Top
+      </a>
     </div>
   );
 }

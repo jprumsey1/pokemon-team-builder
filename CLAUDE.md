@@ -1,7 +1,7 @@
 # Pokémon Team Builder
 
 FastAPI + SQLAlchemy 2.0 async + Postgres (`backend/`), React 19 + Vite + Tailwind v4
-(`frontend/`). Setup and run commands live in `README.md` — read it, don't edit it.
+(`frontend/`).
 
 ## Checks
 
@@ -11,8 +11,8 @@ Before claiming work is done, from `backend/`:
 uv run ruff check . && uv run ruff format . && uv run pyright && uv run pytest
 ```
 
-`.githooks/pre-commit` gates commits on the first three. Tests need `docker compose up -d`.
-Frontend: `npm run lint` (oxlint) and `npm run build` from `frontend/`.
+Frontend: `npm run lint` (oxlint) and `npm run build` (runs `tsc -b`) from `frontend/`.
+Tests for the frontend aren't necessary right now.
 
 ## README
 
@@ -20,12 +20,12 @@ Don't add to the README.md unless asked. This is technical documentation meant t
 
 ## Comments
 
-**Explain why, not what, in one or two lines.**
+**Use sparingly - only to explain why, not what, in one or two lines.**
 
-Write a comment only when the code is surprising in a non-obvious way.
-Do not restate what the line does, and do not put high-level design rationale in source.
+Write a comment only when the code is non-obvious.
+Do not just restate what the line does. 
 
-This belongs in plan documents and finalized overview in `README.md`.
+Do not put high-level design rationale in source. This belongs in plan documents and finalized overview in `README.md`.
 
 ## Code Style
 
@@ -35,10 +35,6 @@ Follow the "you aren't gonna need it principle" - don't introduce something new 
 
 Use "rule of three" when introducing a new function. If similar code is used three or more times, extract it.
 
-## API
-
-During development and design, defer to standards and suggestions from FastAPI docs https://fastapi.tiangolo.com/.
-
 ## Database
 
 Alembic owns the schema. Edit `backend/app/models.py`, but do not run
@@ -46,9 +42,9 @@ Alembic owns the schema. Edit `backend/app/models.py`, but do not run
 
 ## Tests
 
-Follow "arrange, act, assert" when writing tests with pytest. One python function = one test case with a readable name. 
+Backend tests need `docker compose up -d` to ensure the db container is running.
+
+Follow "arrange, act, assert". One python function = one test case with a readable name.
 
 `asyncio_mode = "auto"` is required — without it async tests silently skip rather than fail.
 Sync integration tests use a separate `ptb_test` database.
-
-Tests for front-end aren't necessary right now.

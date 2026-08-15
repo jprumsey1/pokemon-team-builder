@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     admin_secret: str = "dev-admin-secret"
 
     sync_hour: int = 4
+    sync_timezone: str = "America/New_York"
 
     @field_validator("database_url")
     @classmethod
