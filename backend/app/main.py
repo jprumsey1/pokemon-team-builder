@@ -7,11 +7,15 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.api.main import api_router
 from app.core.config import settings
 from app.core.db import engine
+from app.scheduler import build_scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    scheduler = build_scheduler()
+    scheduler.start()
     yield
+    scheduler.shutdown(wait=False)
     await engine.dispose()
 
 

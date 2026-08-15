@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
 from app.models import Pokemon, PokemonChangeEvent
-from app.services.ingest import sync_pokemon
+from app.services.sync import sync_pokemon
 from tests.conftest import stub_pokemon_payload
 
 

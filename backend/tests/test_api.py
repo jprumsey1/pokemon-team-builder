@@ -147,30 +147,30 @@ async def test_deleting_a_team_removes_its_members(client, session):
         pytest.param({"X-Admin-Secret": "guess"}, id="wrong-secret"),
     ],
 )
-async def test_scan_requires_the_admin_secret(client, headers):
+async def test_sync_requires_the_admin_secret(client, headers):
     # Arrange — nothing; the guard runs before the handler
 
     # Act
-    response = await client.post("/api/admin/scan", headers=headers)
+    response = await client.post("/api/admin/sync", headers=headers)
 
     # Assert
     assert response.status_code == 401
 
 
-async def test_scan_alerts_only_the_user_who_rostered_the_pokemon(client, pokeapi):
-    # Arrange — seed pikachu through a scan, roster it as ash, then move it upstream
+async def test_sync_alerts_only_the_user_who_rostered_the_pokemon(client, pokeapi):
+    # Arrange — seed pikachu through a sync, roster it as ash, then move it upstream
     pokeapi[25] = stub_pokemon_payload(25, "pikachu", ["electric"], attack=55)
-    await client.post("/api/admin/scan", headers=ADMIN_HEADERS)
+    await client.post("/api/admin/sync", headers=ADMIN_HEADERS)
     await sign_in(client, "ash")
     team_id = await new_team(client)
     await client.put(f"/api/teams/{team_id}/members", json={"pokemon_ids": [25]})
     pokeapi[25] = stub_pokemon_payload(25, "pikachu", ["electric"], attack=60)
 
     # Act
-    scan = await client.post("/api/admin/scan", headers=ADMIN_HEADERS)
+    sync = await client.post("/api/admin/sync", headers=ADMIN_HEADERS)
 
     # Assert — ash is told, and a user with no pikachu is not
-    assert scan.json()["alerted"] == 1
+    assert sync.json()["alerted"] == 1
     assert [
         alert["pokemon"]["name"] for alert in (await client.get("/api/teams/alerts")).json()
     ] == ["pikachu"]

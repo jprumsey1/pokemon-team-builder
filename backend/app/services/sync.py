@@ -1,7 +1,11 @@
-"""Sync PokéAPI into our tables. Trim payloads to data team builder cares about, and log what changed as a `PokemonChangeEvent`.
-changed as a `PokemonChangeEvent`.
+"""Sync PokéAPI data to our tables. 
 
-Changes are rare and PokeAPI is a free, public API, so this should be run as a periodic background task rather than on every request.
+
+Trim payloads to data the team builder app cares about.
+Logs what changed as a `PokemonChangeEvent`.
+
+Changes are rare and PokeAPI is a free, public API, so this
+should be run as a periodic background task rather than on every request.
 """
 
 import asyncio
@@ -41,7 +45,6 @@ class SyncPokemonResult:
     updated: int = 0
     alerted: int = 0  # subset of `updated` that moved an alerting field
     failed: int = 0
-
 
 async def sync_pokemon(session: AsyncSession) -> SyncPokemonResult:
     """Fetch pokemon data from PokéAPI and synchronize it with the local database."""
@@ -149,8 +152,8 @@ def _trim(raw_pokemon: dict) -> dict:
 
 async def main() -> None:
     """Run a full sync of relevant PokeAPI data to the team builder database.
-
-    This includes syncing type matchups and Pokémon data.
+    
+    Only needs to be run once on initial setup to seed Pokemon and 18 base types.
     """
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     logging.getLogger("httpx").setLevel(logging.WARNING)

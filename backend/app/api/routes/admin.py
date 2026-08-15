@@ -5,12 +5,15 @@ from dataclasses import asdict
 from fastapi import APIRouter
 
 from app.api.dependencies import SessionDep
-from app.services.ingest import sync_pokemon
+from app.services.sync import sync_pokemon
 
 router = APIRouter(tags=["admin"])
 
 
-@router.post("/scan")
-async def scan(db: SessionDep) -> dict[str, int]:
-    """Execute weekly Pokémon data synchronization on demand."""
+@router.post("/sync")
+async def sync(db: SessionDep) -> dict[str, int]:
+    """Execute the daily Pokémon data synchronization on demand.
+    
+    For demonstration purposes.
+    """
     return asdict(await sync_pokemon(db))

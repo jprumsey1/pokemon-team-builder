@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     session_secret: str = "dev-secret"
     admin_secret: str = "dev-admin-secret"
 
+    sync_hour: int = 4
+
     @field_validator("database_url")
     @classmethod
     def _require_async_driver(cls, v: str) -> str:

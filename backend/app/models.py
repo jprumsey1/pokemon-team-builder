@@ -1,4 +1,4 @@
-"""SQLAlchemy data models.
+"""ORM data models.
 
 Assumptions:
   * `pokemon.id` is PokeAPI's own id, not a surrogate key. Other tables use a generated surrogate key.
@@ -46,7 +46,7 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
-    teams: Mapped[list["Team"]] = relationship(
+    teams: Mapped[list[Team]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
         passive_deletes=True,
@@ -95,8 +95,8 @@ class Team(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    user: Mapped["User"] = relationship(back_populates="teams")
-    members: Mapped[list["TeamPokemon"]] = relationship(
+    user: Mapped[User] = relationship(back_populates="teams")
+    members: Mapped[list[TeamPokemon]] = relationship(
         back_populates="team",
         cascade="all, delete-orphan",
         # Only takes effect alongside ondelete="CASCADE" on the FK; both needed.
@@ -118,8 +118,8 @@ class TeamPokemon(Base):
     position: Mapped[int] = mapped_column(Integer, primary_key=True)
     pokemon_id: Mapped[int] = mapped_column(ForeignKey("pokemon.id"))
 
-    team: Mapped["Team"] = relationship(back_populates="members")
-    pokemon: Mapped["Pokemon"] = relationship(lazy="joined")
+    team: Mapped[Team] = relationship(back_populates="members")
+    pokemon: Mapped[Pokemon] = relationship(lazy="joined")
 
 
 class PokemonChangeEvent(Base):
@@ -140,7 +140,7 @@ class PokemonChangeEvent(Base):
     )
     changes: Mapped[list[dict]] = mapped_column(JSONB)
 
-    pokemon: Mapped["Pokemon"] = relationship()
+    pokemon: Mapped[Pokemon] = relationship()
 
 
 class TypeMatchup(Base):
