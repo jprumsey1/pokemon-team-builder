@@ -1,4 +1,4 @@
-"""The dex. One endpoint, no params — all 1351 rows, filtered client-side."""
+"""The pokedex, to be filtered client-side."""
 
 from fastapi import APIRouter
 from sqlalchemy import select

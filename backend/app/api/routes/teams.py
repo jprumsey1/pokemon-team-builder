@@ -1,4 +1,4 @@
-"""Teams, their members, and the alerts derived from those rosters."""
+"""User teams, members, and alerts derived from team members."""
 
 from datetime import UTC, datetime, timedelta
 
@@ -27,7 +27,7 @@ async def _load_team(db: SessionDep, user_id: int, team_id: int) -> Team:
     return team
 
 
-@router.get("/teams")
+@router.get("")
 async def list_teams(user: CurrentUser, db: SessionDep) -> list[TeamOut]:
     teams = await db.scalars(
         select(Team)
@@ -38,7 +38,7 @@ async def list_teams(user: CurrentUser, db: SessionDep) -> list[TeamOut]:
     return [TeamOut.model_validate(team) for team in teams]
 
 
-@router.post("/teams", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_team(body: TeamIn, user: CurrentUser, db: SessionDep) -> TeamOut:
     team = Team(user_id=user.id, name=body.name)
     db.add(team)
@@ -46,7 +46,7 @@ async def create_team(body: TeamIn, user: CurrentUser, db: SessionDep) -> TeamOu
     return TeamOut.model_validate(await _load_team(db, user.id, team.id))
 
 
-@router.patch("/teams/{team_id}")
+@router.patch("/{team_id}")
 async def rename_team(
     team_id: int, body: TeamIn, user: CurrentUser, db: SessionDep
 ) -> TeamOut:
@@ -56,7 +56,7 @@ async def rename_team(
     return TeamOut.model_validate(team)
 
 
-@router.delete("/teams/{team_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{team_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_team(team_id: int, user: CurrentUser, db: SessionDep) -> Response:
     team = await _load_team(db, user.id, team_id)
     await db.delete(team)
@@ -64,7 +64,7 @@ async def delete_team(team_id: int, user: CurrentUser, db: SessionDep) -> Respon
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.put("/teams/{team_id}/members")
+@router.put("/{team_id}/members")
 async def set_members(
     team_id: int, body: TeamMembersIn, user: CurrentUser, db: SessionDep
 ) -> TeamOut:
@@ -76,7 +76,7 @@ async def set_members(
     )
     if unknown := sorted(set(body.pokemon_ids) - known):
         raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_ENTITY, f"Unknown pokemon ids: {unknown}"
+            status.HTTP_422_UNPROCESSABLE_CONTENT, f"Unknown pokemon ids: {unknown}"
         )
 
     # Core delete() runs immediately; letting the unit of work do it would emit the
@@ -93,7 +93,7 @@ async def set_members(
     return TeamOut.model_validate(team)
 
 
-@router.post("/teams/{team_id}/counter")
+@router.post("/{team_id}/counter")
 async def counter_team(team_id: int, user: CurrentUser, db: SessionDep) -> CounterOut:
     await _load_team(db, user.id, team_id)
     raise HTTPException(status.HTTP_501_NOT_IMPLEMENTED, "Counter team not built yet")

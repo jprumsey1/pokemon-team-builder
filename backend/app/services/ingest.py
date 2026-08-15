@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.db import session_factory, engine
+from app.core.db import engine, session_factory
 from app.models import Pokemon, PokemonChangeEvent, TypeMatchup
 from app.services.pokeapi import PokeAPIClient, id_from_url
 
@@ -67,15 +67,6 @@ async def sync_pokemon(session: AsyncSession) -> SyncPokemonResult:
                 result.inserted += 1
                 continue
 
-            alerting_changes = [
-                {
-                    "field": field,
-                    "from": getattr(cached, field),
-                    "to": upstream[field],
-                }
-                for field in ALERTING_FIELDS
-                if getattr(cached, field) != upstream[field]
-            ]
             changed_fields = [
                 field
                 for field in MUTABLE_FIELDS
@@ -83,8 +74,18 @@ async def sync_pokemon(session: AsyncSession) -> SyncPokemonResult:
             ]
             if not changed_fields:
                 continue
+            alerting_changes = []
             for field in changed_fields:
+                if field in ALERTING_FIELDS:
+                    alerting_changes.append(
+                        {
+                            "field": field,
+                            "from": getattr(cached, field),
+                            "to": upstream[field],
+                        }
+                    )
                 setattr(cached, field, upstream[field])
+                
             result.updated += 1
             if alerting_changes:
                 session.add(

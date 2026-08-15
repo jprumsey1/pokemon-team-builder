@@ -1,4 +1,4 @@
-"""Operator endpoints. `X-Admin-Secret` is enforced at the include site in main.py."""
+"""Admin-only endpoints, meant for triggering background administrative tasks on demand."""
 
 from dataclasses import asdict
 
