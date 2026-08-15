@@ -1,4 +1,4 @@
-"""Sync PokéAPI data to our tables. 
+"""Sync PokéAPI data to our tables.
 
 
 Trim payloads to data the team builder app cares about.
@@ -33,9 +33,9 @@ ALERTING_FIELDS = (
     "special_defense",
     "speed",
 )
-# Updated, but do not trigger user alerts
-SILENT_FIELDS = ("species_id", "is_default", "sprite_url")
-MUTABLE_FIELDS = ALERTING_FIELDS + SILENT_FIELDS
+MUTABLE_FIELDS = tuple(
+    column.key for column in Pokemon.__table__.columns if column.key != "id"
+)
 
 
 @dataclass(slots=True)
@@ -45,6 +45,7 @@ class SyncPokemonResult:
     updated: int = 0
     alerted: int = 0  # subset of `updated` that moved an alerting field
     failed: int = 0
+
 
 async def sync_pokemon(session: AsyncSession) -> SyncPokemonResult:
     """Fetch pokemon data from PokéAPI and synchronize it with the local database."""
@@ -88,7 +89,7 @@ async def sync_pokemon(session: AsyncSession) -> SyncPokemonResult:
                         }
                     )
                 setattr(cached, field, upstream[field])
-                
+
             result.updated += 1
             if alerting_changes:
                 session.add(
@@ -101,8 +102,8 @@ async def sync_pokemon(session: AsyncSession) -> SyncPokemonResult:
     return result
 
 
-async def sync_type_matchup(session: AsyncSession) -> None:
-    """Replace the 18x18 type matchup chart from upstream."""
+async def sync_type_matchup(session: AsyncSession) -> int:
+    """Replace the 18x18 type matchup chart from upstream. Returns the row count."""
     async with PokeAPIClient() as client:
         damage_relations = await client.get_type_damage_relations()
 
@@ -127,6 +128,7 @@ async def sync_type_matchup(session: AsyncSession) -> None:
     )
     await session.commit()
     logger.info("type chart seeded: %d matchups", len(type_matchups))
+    return len(type_matchups)
 
 
 def _trim(raw_pokemon: dict) -> dict:
@@ -150,13 +152,11 @@ def _trim(raw_pokemon: dict) -> dict:
     }
 
 
-async def main() -> None:
+async def sync_all() -> None:
     """Run a full sync of relevant PokeAPI data to the team builder database.
-    
+
     Only needs to be run once on initial setup to seed Pokemon and 18 base types.
     """
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
     async with session_factory() as session:
         await sync_type_matchup(session)
         await sync_pokemon(session)
@@ -164,4 +164,7 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    # httpx logs one line per request
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    asyncio.run(sync_all())

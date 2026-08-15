@@ -18,7 +18,10 @@ services:
       start_period: 5s
 
   api:
-    build: ./backend
+    # Root context: the image's web stage builds the SPA from ./frontend.
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: pokemon-team-builder-api
     profiles: ["container"]
     depends_on:
@@ -31,6 +34,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
+      # Shadows the image's app/static too, so this path serves no SPA — it's for API
+      # work with Vite on the host, which is the documented dev loop anyway.
       - ./backend/app:/app/app
     # `fastapi dev` binds 127.0.0.1 by default, unreachable from host when running in container
     command: fastapi dev app/main.py --host 0.0.0.0

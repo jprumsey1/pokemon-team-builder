@@ -12,3 +12,5 @@ backend/app/static/
 .DS_Store
 .idea/
 .vscode/
+
+jr_notes.md

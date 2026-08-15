@@ -1,0 +1,17 @@
+**/.venv/
+**/node_modules/
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.ruff_cache/
+**/.env
+
+# Built by the web stage, never copied in — a stale host build must not reach the image.
+backend/app/static/
+frontend/dist/
+
+.git/
+.github/
+.vscode/
+.idea/
+**/.DS_Store

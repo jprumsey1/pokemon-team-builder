@@ -1,5 +1,6 @@
 """User teams, members, and alerts derived from team members."""
 
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Response, status
@@ -8,7 +9,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from app.api.dependencies import CurrentUser, SessionDep
 from app.models import Pokemon, PokemonChangeEvent, Team, TeamPokemon
-from app.schemas import AlertOut, CounterOut, TeamIn, TeamMembersIn, TeamOut
+from app.schemas import AlertOut, TeamIn, TeamMembersIn, TeamOut
 
 router = APIRouter(tags=["teams"])
 
@@ -16,7 +17,7 @@ ALERT_WINDOW = timedelta(days=7)
 
 
 async def _load_team(db: SessionDep, user_id: int, team_id: int) -> Team:
-    """Someone else's team is a 404, not a 403 — a 403 confirms the id exists."""
+    """Select a team belonging to the given user."""
     team = await db.scalar(
         select(Team)
         .where(Team.id == team_id, Team.user_id == user_id)
@@ -27,33 +28,33 @@ async def _load_team(db: SessionDep, user_id: int, team_id: int) -> Team:
     return team
 
 
-@router.get("")
-async def list_teams(user: CurrentUser, db: SessionDep) -> list[TeamOut]:
+@router.get("", response_model=list[TeamOut])
+async def list_teams(user: CurrentUser, db: SessionDep) -> Sequence[Team]:
     teams = await db.scalars(
         select(Team)
         .where(Team.user_id == user.id)
         .order_by(Team.created_at)
         .options(selectinload(Team.members))
     )
-    return [TeamOut.model_validate(team) for team in teams]
+    return teams.all()
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
-async def create_team(body: TeamIn, user: CurrentUser, db: SessionDep) -> TeamOut:
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=TeamOut)
+async def create_team(body: TeamIn, user: CurrentUser, db: SessionDep) -> Team:
     team = Team(user_id=user.id, name=body.name)
     db.add(team)
     await db.commit()
-    return TeamOut.model_validate(await _load_team(db, user.id, team.id))
+    return await _load_team(db, user.id, team.id)
 
 
-@router.patch("/{team_id}")
+@router.patch("/{team_id}", response_model=TeamOut)
 async def rename_team(
     team_id: int, body: TeamIn, user: CurrentUser, db: SessionDep
-) -> TeamOut:
+) -> Team:
     team = await _load_team(db, user.id, team_id)
     team.name = body.name
     await db.commit()
-    return TeamOut.model_validate(team)
+    return team
 
 
 @router.delete("/{team_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -64,10 +65,10 @@ async def delete_team(team_id: int, user: CurrentUser, db: SessionDep) -> Respon
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.put("/{team_id}/members")
+@router.put("/{team_id}/members", response_model=TeamOut)
 async def set_members(
     team_id: int, body: TeamMembersIn, user: CurrentUser, db: SessionDep
-) -> TeamOut:
+) -> Team:
     """Takes the complete ordered roster, so add, remove and reorder are one call."""
     team = await _load_team(db, user.id, team_id)
 
@@ -90,17 +91,13 @@ async def set_members(
     # Re-querying would hand back the identity map's already-loaded collection —
     # the roster we just replaced. Only a refresh re-reads it.
     await db.refresh(team, ["members"])
-    return TeamOut.model_validate(team)
+    return team
 
 
-@router.post("/{team_id}/counter")
-async def counter_team(team_id: int, user: CurrentUser, db: SessionDep) -> CounterOut:
-    await _load_team(db, user.id, team_id)
-    raise HTTPException(status.HTTP_501_NOT_IMPLEMENTED, "Counter team not built yet")
-
-
-@router.get("/alerts")
-async def list_alerts(user: CurrentUser, db: SessionDep) -> list[AlertOut]:
+@router.get("/alerts", response_model=list[AlertOut])
+async def list_alerts(
+    user: CurrentUser, db: SessionDep
+) -> Sequence[PokemonChangeEvent]:
     """Changes in the last 7 days to Pokémon this user has rostered."""
     pokemon_rostered_by_user = (
         select(TeamPokemon)
@@ -119,4 +116,4 @@ async def list_alerts(user: CurrentUser, db: SessionDep) -> list[AlertOut]:
         .order_by(PokemonChangeEvent.detected_at.desc())
         .options(joinedload(PokemonChangeEvent.pokemon))
     )
-    return [AlertOut.model_validate(event) for event in events]
+    return events.all()

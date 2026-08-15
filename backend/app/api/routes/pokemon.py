@@ -1,4 +1,6 @@
-"""The pokedex, to be filtered client-side."""
+"""The Pokedex, to be filtered client-side."""
+
+from collections.abc import Sequence
 
 from fastapi import APIRouter
 from sqlalchemy import select
@@ -10,8 +12,8 @@ from app.schemas import PokemonOut
 router = APIRouter(tags=["pokemon"])
 
 
-@router.get("")
-async def list_pokemon(db: SessionDep) -> list[PokemonOut]:
+@router.get("", response_model=list[PokemonOut])
+async def list_pokemon(db: SessionDep) -> Sequence[Pokemon]:
     # Sorted so variants sit directly under the base form
     # (i.e. Mega Charizard X next to Charizard)
     rows = await db.scalars(
@@ -19,4 +21,4 @@ async def list_pokemon(db: SessionDep) -> list[PokemonOut]:
             Pokemon.species_id, Pokemon.is_default.desc(), Pokemon.id
         )
     )
-    return [PokemonOut.model_validate(row) for row in rows]
+    return rows.all()

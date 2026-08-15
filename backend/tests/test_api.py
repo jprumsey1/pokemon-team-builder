@@ -107,7 +107,6 @@ async def test_alerts_returns_one_row_per_event_for_my_roster(client, session):
         pytest.param(
             "put", "/api/teams/{id}/members", {"pokemon_ids": []}, id="set-members"
         ),
-        pytest.param("post", "/api/teams/{id}/counter", None, id="counter"),
     ],
 )
 async def test_another_users_team_is_not_found(client, method, path, body):
@@ -172,7 +171,8 @@ async def test_sync_alerts_only_the_user_who_rostered_the_pokemon(client, pokeap
     # Assert — ash is told, and a user with no pikachu is not
     assert sync.json()["alerted"] == 1
     assert [
-        alert["pokemon"]["name"] for alert in (await client.get("/api/teams/alerts")).json()
+        alert["pokemon"]["name"]
+        for alert in (await client.get("/api/teams/alerts")).json()
     ] == ["pikachu"]
     await sign_in(client, "misty")
     assert (await client.get("/api/teams/alerts")).json() == []

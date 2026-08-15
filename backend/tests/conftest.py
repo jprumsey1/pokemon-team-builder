@@ -65,7 +65,7 @@ async def client(session):
 
 
 def make_pokemon(pokemon_id, name, type_1, type_2=None, **stats):
-    """A dex row. Stats default to something plausible; override the ones a test cares about."""
+    """A Pokedex row. Stats default to something plausible; override what a test cares about."""
     return Pokemon(
         id=pokemon_id,
         name=name,

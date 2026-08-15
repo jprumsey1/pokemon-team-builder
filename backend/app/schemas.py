@@ -72,12 +72,3 @@ class AlertOut(BaseModel):
     detected_at: datetime
     # `from` is a keyword, so {field, from, to} can't be a model. Pass the JSONB through.
     changes: list[dict]
-
-
-class CounterPick(BaseModel):
-    pokemon: PokemonOut
-    rationale: str
-
-
-class CounterOut(BaseModel):
-    picks: list[CounterPick]
