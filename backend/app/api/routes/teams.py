@@ -128,16 +128,15 @@ async def counter_team(
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT, "Team has no members to counter"
         )
-
     opposing = [member.pokemon for member in team.members]
     opposing_pokemon_ids = {pokemon.id for pokemon in opposing}
     candidates = await db.scalars(
-        select(Pokemon).where(
-            Pokemon.is_default, Pokemon.id.notin_(opposing_pokemon_ids)
-        )
+        select(Pokemon).where(Pokemon.id.notin_(opposing_pokemon_ids))
     )
-    chart = await _get_type_matchup_chart(db)
-    picks = build_counter_team(opposing, candidates.all(), chart, random.Random())
+    type_matchup_chart = await _get_type_matchup_chart(db)
+    picks = build_counter_team(
+        opposing, candidates.all(), type_matchup_chart, random.Random()
+    )
     return [
         TeamMemberOut(position=member.position, pokemon=PokemonOut.model_validate(pick))
         for member, pick in zip(team.members, picks, strict=True)

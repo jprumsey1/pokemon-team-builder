@@ -4,7 +4,7 @@ from app.lib.counter_team import (
     base_stat_total,
     build_counter_team,
     has_type_advantage,
-    within_stat_band,
+    is_within_stat_band,
 )
 from app.models import Pokemon
 from tests.conftest import make_pokemon
@@ -52,7 +52,7 @@ def test_within_stat_band_true_when_metric_is_within_the_band():
     opponent = make_pokemon(2, "opponent", "fire", "flying", speed=45, attack=64)
 
     # Act
-    in_band = within_stat_band(candidate, opponent, base_stat_total, 0.25)
+    in_band = is_within_stat_band(candidate, opponent, base_stat_total, 0.25)
 
     # Assert
     assert in_band is True
@@ -66,7 +66,7 @@ def test_within_stat_band_false_when_metric_is_outside_the_band():
     )
 
     # Act
-    in_band = within_stat_band(candidate, opponent, base_stat_total, 0.25)
+    in_band = is_within_stat_band(candidate, opponent, base_stat_total, 0.25)
 
     # Assert
     assert in_band is False

@@ -7,6 +7,7 @@ from app.config import settings
 from app.db import session_factory
 from app.lib.sync import sync_pokemon
 
+
 async def _scheduled_sync_pokemon() -> None:
     async with session_factory() as session:
         await sync_pokemon(session)

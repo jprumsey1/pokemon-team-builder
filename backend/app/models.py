@@ -54,7 +54,9 @@ class User(Base):
 
 
 class Pokemon(Base):
-    """Our cache of PokéAPI. Written only when something actually changed."""
+    """PokeAPI Pokemon data. 
+    
+    Refreshed by background process only when something actually changed."""
 
     __tablename__ = "pokemon"
 
@@ -62,8 +64,7 @@ class Pokemon(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     name: Mapped[str] = mapped_column(String(100), index=True)
 
-    # Groups variants with their base form: charizard and charizard-mega-x are
-    # both species_id 6, so the grid can sort variants directly under their parent
+    # Used to groups variants with their base form in app (charizard, charizard-mega-x)
     species_id: Mapped[int] = mapped_column(Integer, index=True)
     is_default: Mapped[bool] = mapped_column(Boolean)
 

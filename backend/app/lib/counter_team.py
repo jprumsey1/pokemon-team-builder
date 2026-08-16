@@ -15,13 +15,17 @@ STAT_BAND_STEP = 0.05
 MAX_ITERATIONS_UNTIL_RANDOM_PICK = 3
 
 # A metric reduces a Pokemon to one comparable number.
-# Can substitute for speed only, attack, any formula using base stats, etc.
-# Pass to build_counter_team, no change to the selection logic itself.
+# Can substitute for speed only, attack, or any formula
 StatMetric = Callable[[Pokemon], float]
+
+# StatMetric implementations
 
 
 def base_stat_total(pokemon: Pokemon) -> float:
-    """Default StatMetric: sum of the six base stats."""
+    """Returns the sum of the six base stats.
+
+    Default StatMetric used for comparison.
+    """
     return (
         pokemon.hp
         + pokemon.attack
@@ -32,7 +36,7 @@ def base_stat_total(pokemon: Pokemon) -> float:
     )
 
 
-def _types(pokemon: Pokemon) -> tuple[str, ...]:
+def _get_types(pokemon: Pokemon) -> tuple[str, ...]:
     return (
         (pokemon.type_1,)
         if pokemon.type_2 is None
@@ -41,39 +45,44 @@ def _types(pokemon: Pokemon) -> tuple[str, ...]:
 
 
 def has_type_advantage(
-    candidate: Pokemon, opponent: Pokemon, chart: TypeMatchupChart
+    candidate: Pokemon, opponent: Pokemon, type_matchup_chart: TypeMatchupChart
 ) -> bool:
-    """True if a STAB move of either of the candidate's types is super-effective on opponent.
+    """True if a move of either of the candidate's types is super-effective on opponent.
 
-    TODO: for each of candidate's _types(), multiply chart.get(attacking_type, {}).get(
-    defending_type, 1.0) across all of opponent's _types() (missing entries are neutral, 1.0;
-    multiplying rather than averaging is what makes 4x/0.25x/immunity work). True if any
-    candidate type's multiplier is >= SUPER_EFFECTIVE.
+    Each per-type factor is one of 0 (immune), 0.5 (resistant), 1.0 (neutral),
+    or 2.0 (super-effective) and the final damage multiplier is the product of these.
     """
-    raise NotImplementedError
+    for candidate_type in _get_types(candidate):
+        damage_multiplier = 1.0
+        for opposing_type in _get_types(opponent):
+            damage_multiplier *= type_matchup_chart.get(candidate_type, {}).get(
+                opposing_type, 1.0
+            )
+        if damage_multiplier >= SUPER_EFFECTIVE:
+            return True
+    return False
 
 
-def within_stat_band(
-    candidate: Pokemon, opponent: Pokemon, metric: StatMetric, band: float
+def is_within_stat_band(
+    candidate: Pokemon, opponent: Pokemon, stat_metric: StatMetric, band: float
 ) -> bool:
-    """True if candidate's metric is within +/- `band` (e.g. 0.25) of opponent's.
+    """True if candidate's metric is within +/- `band` (e.g. 0.25) of opponent's."""
+    return abs(stat_metric(candidate) - stat_metric(opponent)) <= band * stat_metric(
+        opponent
+    )
 
-    TODO: compare metric(candidate) to metric(opponent) * (1 +/- band).
-    """
-    raise NotImplementedError
 
-
-def _pick_for(
+def _get_counter_pokemon(
     opponent: Pokemon,
-    pool: Sequence[Pokemon],
-    chart: TypeMatchupChart,
+    candidates: Sequence[Pokemon],
+    type_matchup_chart: TypeMatchupChart,
     rng: random.Random,
-    metric: StatMetric,
+    stat_metric: StatMetric,
 ) -> Pokemon:
-    """Select one counter for `opponent` from `pool` (already excludes used picks).
+    """Select one counter for `opponent` from `candidates` (already excludes used picks).
 
     TODO:
-    1. type_pool = [c for c in pool if has_type_advantage(c, opponent, chart)]
+    1. type_pool = [c for c in candidates if has_type_advantage(c, opponent, type_matchup_chart)]
     2. band = STAT_BAND_START; up to MAX_BAND_WIDENINGS times: filter type_pool by
        within_stat_band(c, opponent, metric, band); if non-empty, rng.choice() it and stop;
        otherwise band += STAT_BAND_STEP and retry.
@@ -81,7 +90,27 @@ def _pick_for(
        advantage kept.
     4. type_pool itself empty? rng.choice(pool) — last resort, guarantees a pick exists.
     """
-    raise NotImplementedError
+    # Filter candidates by type advantage first, then iteratively by stat band
+    candidates_with_type_advantage = [
+        c
+        for c in candidates
+        if has_type_advantage(c, opponent, type_matchup_chart) and c.id != opponent.id
+    ]
+    band = STAT_BAND_START
+    for _ in range(MAX_ITERATIONS_UNTIL_RANDOM_PICK):
+        candidates_within_stat_band = [
+            c
+            for c in candidates_with_type_advantage
+            if is_within_stat_band(c, opponent, stat_metric, band)
+        ]
+        if candidates_within_stat_band:
+            return rng.choice(candidates_within_stat_band)
+        band += STAT_BAND_STEP
+    # If we reach here, no candidates were within the stat band in any iteration
+    if candidates_with_type_advantage:
+        return rng.choice(candidates_with_type_advantage)
+    # Otherwise, fall back to a random candidate
+    return rng.choice(candidates)
 
 
 def build_counter_team(
@@ -91,9 +120,12 @@ def build_counter_team(
     rng: random.Random,
     metric: StatMetric = base_stat_total,
 ) -> list[Pokemon]:
-    """One counter per Pokemon in `opposing`, matched slot for slot (by list position). No repeats.
-
-    TODO: for each opponent in opposing, call _pick_for with candidates minus the ids already
-    chosen so far, collect into the result list.
-    """
-    raise NotImplementedError
+    """Retrieve a counter Pokemon for each in `opposing`, with no repeats."""
+    picks: list[Pokemon] = []
+    chosen_ids: set[int] = set()
+    for opponent in opposing:
+        pool = [c for c in candidates if c.id not in chosen_ids]
+        pick = _get_counter_pokemon(opponent, pool, chart, rng, metric)
+        picks.append(pick)
+        chosen_ids.add(pick.id)
+    return picks
