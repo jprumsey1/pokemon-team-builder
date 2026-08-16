@@ -44,7 +44,7 @@ export function PokedexControls({
         value={filters.type}
         onChange={(event) => onChange({ type: event.target.value })}
       >
-        <option value="">All types</option>
+        <option value="">All Types</option>
         {TYPES.map((type) => (
           <option key={type} value={type}>
             {displayName(type)}

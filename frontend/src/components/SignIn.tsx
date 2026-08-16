@@ -32,9 +32,6 @@ export function SignIn() {
             onChange={(event) => setUsername(event.target.value)}
             autoFocus
           />
-          <p className="text-xs text-slate-500">
-            No passwords yet, this is a demo.
-          </p>
         </div>
         <button
           type="submit"

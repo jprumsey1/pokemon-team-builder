@@ -15,7 +15,7 @@ export const usePokemon = () =>
   });
 
 export function useTeams() {
-  // Teams depend on auth, so this hook owns that fact rather than every caller.
+  // Teams depend on user logged in
   const me = useMe();
   return useQuery({
     queryKey: ["teams"],
@@ -41,12 +41,12 @@ export function useSignOut() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: api.signOut,
-    // clear() rather than invalidate: the next user must not see this one's teams.
+    // clear() on sign out so new user does not see the previous user's data
     onSuccess: () => client.clear(),
   });
 }
 
-/** Every team write invalidates alerts too — the roster is what decides who is alerted. */
+/** Every team write invalidates alerts and teams. The team roster is what decides who is alerted. */
 function useTeamMutation<TArgs, TResult>(
   mutationFn: (args: TArgs) => Promise<TResult>,
 ) {

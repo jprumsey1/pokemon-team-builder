@@ -79,10 +79,9 @@ export default function App() {
       <footer className="border-t border-slate-200 px-4 py-6 text-center text-xs text-slate-500">
         Pokémon data from{" "}
         <a
-          className="underline hover:text-slate-900"
+          className="underline"
           href="https://pokeapi.co/"
           target="_blank"
-          rel="noreferrer"
         >
           PokéAPI
         </a>.

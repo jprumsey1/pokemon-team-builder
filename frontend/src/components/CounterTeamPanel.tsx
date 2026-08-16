@@ -141,6 +141,34 @@ export function CounterTeamPanel({ teamId, disabled }: Props) {
           )}
         </>
       )}
+
+      <details className="border-t border-slate-200 pt-3">
+        <summary className="cursor-pointer text-xs font-medium text-slate-500">
+          How does this work?
+        </summary>
+        <p className="mt-2 text-xs text-slate-500">
+          For each Pokémon on the team, we pick a counter that has a{" "}
+          <a
+            href="https://pokemondb.net/type"
+            target="_blank"
+            className="underline"
+          >
+            type advantage
+          </a>{" "}
+          and has similar strength based on the stat formula you selected above.
+        </p>
+        <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-slate-500">
+          <li>
+            From every Pokémon with a type advantage, we pick one at random
+            whose value is within 20% of the opponent's.
+          </li>
+          <li>If none qualify, we widen that to 25%, then 30%.</li>
+          <li>
+            If still none qualify, we pick any type-advantaged Pokémon at random.
+          </li>
+          <li>No Pokémon is picked twice and a Pokémon cannot counter itself.</li>
+        </ul>
+      </details>
     </div>
   );
 }
