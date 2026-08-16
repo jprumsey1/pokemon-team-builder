@@ -22,8 +22,13 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
 
+# Alembic writes these from its own template; leave them as generated.
+[tool.ruff]
+extend-exclude = ["app/alembic"]
+
 [tool.pyright]
 typeCheckingMode = "standard"
+exclude = ["**/node_modules", "**/__pycache__", "**/.*", "app/alembic"]
 
 [tool.pytest.ini_options]
 # pytest-asyncio 1.x: without this, every async test is silently SKIPPED

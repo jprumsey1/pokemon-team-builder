@@ -14,27 +14,6 @@ export const MAX_STAT = 255;
 
 export const TEAM_SIZE = 6;
 
-export const TYPES = [
-  "normal",
-  "fire",
-  "water",
-  "electric",
-  "grass",
-  "ice",
-  "fighting",
-  "poison",
-  "ground",
-  "flying",
-  "psychic",
-  "bug",
-  "rock",
-  "ghost",
-  "dragon",
-  "dark",
-  "steel",
-  "fairy",
-];
-
 export const TYPE_COLORS: Record<string, string> = {
   normal: "#A8A77A",
   fire: "#EE8130",
@@ -55,6 +34,8 @@ export const TYPE_COLORS: Record<string, string> = {
   steel: "#B7B7CE",
   fairy: "#D685AD",
 };
+
+export const TYPES = Object.keys(TYPE_COLORS);
 
 /** `charizard-mega-x` → `Charizard Mega X` */
 export const displayName = (name: string) =>

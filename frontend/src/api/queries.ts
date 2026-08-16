@@ -15,7 +15,6 @@ export const usePokemon = () =>
   });
 
 export function useTeams() {
-  // Teams depend on user logged in
   const me = useMe();
   return useQuery({
     queryKey: ["teams"],
@@ -24,8 +23,14 @@ export function useTeams() {
   });
 }
 
-export const useAlerts = () =>
-  useQuery({ queryKey: ["alerts"], queryFn: api.getAlerts });
+export function useAlerts() {
+  const me = useMe();
+  return useQuery({
+    queryKey: ["alerts"],
+    queryFn: api.getAlerts,
+    enabled: !!me.data,
+  });
+}
 
 export function useSignIn() {
   const client = useQueryClient();
@@ -46,7 +51,7 @@ export function useSignOut() {
   });
 }
 
-/** Every team write invalidates alerts and teams. The team roster is what decides who is alerted. */
+/** The team roster is what decides who is alerted, so every team write refreshes both. */
 function useTeamMutation<TArgs, TResult>(
   mutationFn: (args: TArgs) => Promise<TResult>,
 ) {
@@ -86,3 +91,4 @@ export const useCounterTeam = () =>
     }) => api.counterTeam(teamId, statMetric),
     meta: { handled: true },
   });
+

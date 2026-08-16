@@ -6,17 +6,15 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Response, status
 from sqlalchemy import delete, exists, select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from app.api.dependencies import CurrentUser, SessionDep
-from app.lib.counter_team import (
-    StatMetricName,
-    TypeMatchupChart,
-    build_counter_team,
-)
+from app.lib.counter_team import TypeMatchupChart, build_counter_team
 from app.models import Pokemon, PokemonChangeEvent, Team, TeamPokemon, TypeMatchup
 from app.schemas import (
     AlertOut,
+    CounterTeamIn,
     PokemonOut,
     TeamIn,
     TeamMemberOut,
@@ -46,6 +44,34 @@ async def create_team(body: TeamIn, user: CurrentUser, db: SessionDep) -> Team:
     db.add(team)
     await db.commit()
     return await _load_team(db, user.id, team.id)
+
+
+@router.get("/alerts", response_model=list[AlertOut])
+async def list_alerts(
+    user: CurrentUser, db: SessionDep
+) -> Sequence[PokemonChangeEvent]:
+    """Changes within ALERT_WINDOW to Pokémon this user has rostered.
+
+    Declared before the /{team_id} routes so it is not shadowed by them.
+    """
+    pokemon_rostered_by_user = (
+        select(TeamPokemon)
+        .join(Team, Team.id == TeamPokemon.team_id)
+        .where(
+            TeamPokemon.pokemon_id == PokemonChangeEvent.pokemon_id,
+            Team.user_id == user.id,
+        )
+    )
+    events = await db.scalars(
+        select(PokemonChangeEvent)
+        .where(
+            PokemonChangeEvent.detected_at > datetime.now(UTC) - ALERT_WINDOW,
+            exists(pokemon_rostered_by_user),
+        )
+        .order_by(PokemonChangeEvent.detected_at.desc())
+        .options(joinedload(PokemonChangeEvent.pokemon))
+    )
+    return events.all()
 
 
 @router.patch("/{team_id}", response_model=TeamOut)
@@ -89,43 +115,18 @@ async def set_members(
         for position, pokemon_id in enumerate(body.pokemon_ids)
     )
     await db.commit()
-    # Re-querying would hand back the identity map's already-loaded collection —
-    # the roster we just replaced. Only a refresh re-reads it.
+    # Re-querying would hand back the identity map's already-loaded collection,
+    # the roster we just replaced.
     await db.refresh(team, ["members"])
     return team
-
-
-@router.get("/alerts", response_model=list[AlertOut])
-async def list_alerts(
-    user: CurrentUser, db: SessionDep
-) -> Sequence[PokemonChangeEvent]:
-    """Changes in the last 7 days to Pokémon this user has rostered."""
-    pokemon_rostered_by_user = (
-        select(TeamPokemon)
-        .join(Team, Team.id == TeamPokemon.team_id)
-        .where(
-            TeamPokemon.pokemon_id == PokemonChangeEvent.pokemon_id,
-            Team.user_id == user.id,
-        )
-    )
-    events = await db.scalars(
-        select(PokemonChangeEvent)
-        .where(
-            PokemonChangeEvent.detected_at > datetime.now(UTC) - ALERT_WINDOW,
-            exists(pokemon_rostered_by_user),
-        )
-        .order_by(PokemonChangeEvent.detected_at.desc())
-        .options(joinedload(PokemonChangeEvent.pokemon))
-    )
-    return events.all()
 
 
 @router.post("/{team_id}/counter")
 async def counter_team(
     team_id: int,
+    body: CounterTeamIn,
     user: CurrentUser,
     db: SessionDep,
-    stat_metric: StatMetricName = "base_stat_total",
 ) -> list[TeamMemberOut]:
     """A counter for each member matched by position.
 
@@ -146,7 +147,7 @@ async def counter_team(
         candidates.all(),
         type_matchup_chart,
         random.Random(),
-        stat_metric=stat_metric,
+        stat_metric=body.stat_metric,
     )
     return [
         TeamMemberOut(position=member.position, pokemon=PokemonOut.model_validate(pick))
@@ -154,8 +155,7 @@ async def counter_team(
     ]
 
 
-async def _load_team(db: SessionDep, user_id: int, team_id: int) -> Team:
-    """Select a team belonging to the given user."""
+async def _load_team(db: AsyncSession, user_id: int, team_id: int) -> Team:
     team = await db.scalar(
         select(Team)
         .where(Team.id == team_id, Team.user_id == user_id)
@@ -166,7 +166,7 @@ async def _load_team(db: SessionDep, user_id: int, team_id: int) -> Team:
     return team
 
 
-async def _get_type_matchup_chart(db: SessionDep) -> TypeMatchupChart:
+async def _get_type_matchup_chart(db: AsyncSession) -> TypeMatchupChart:
     """The whole 18x18 chart as chart[attacking][defending]. 324 rows; not worth caching."""
     chart: TypeMatchupChart = {}
     for row in await db.scalars(select(TypeMatchup)):

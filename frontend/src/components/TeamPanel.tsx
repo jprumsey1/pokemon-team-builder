@@ -78,8 +78,6 @@ export function TeamPanel({
         <>
           <div className="flex gap-1">
             <input
-              // key: remount on team change, or the input keeps the previous team's name.
-              key={activeTeam.id}
               className="min-w-0 grow rounded-md border border-transparent px-2 py-1 font-semibold text-slate-900 hover:border-slate-300 focus:border-slate-900 focus:outline-none"
               defaultValue={activeTeam.name}
               aria-label="Team name"

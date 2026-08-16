@@ -27,7 +27,7 @@ export function SignIn() {
           </label>
           <input
             id="username"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-900"
+            className="field w-full px-3 py-2"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
             autoFocus

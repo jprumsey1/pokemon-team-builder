@@ -2,19 +2,13 @@ import { useMemo, useState } from "react";
 
 import { usePokemon } from "../api/queries";
 import type { Pokemon, StatKey } from "../api/types";
-import { getPokemonTypes } from "../lib/pokemon";
+import { displayName, getPokemonTypes } from "../lib/pokemon";
 import {
   DEFAULT_FILTERS,
   PokedexControls,
   type Filters,
 } from "./PokedexControls";
 import { PokemonCard } from "./PokemonCard";
-
-/** Variants sit directly under the base form they belong to. */
-const byPokedexNumber = (a: Pokemon, b: Pokemon) =>
-  a.species_id - b.species_id ||
-  Number(b.is_default) - Number(a.is_default) ||
-  a.id - b.id;
 
 export function Pokedex({
   disabled,
@@ -26,25 +20,31 @@ export function Pokedex({
   const pokemon = usePokemon();
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
 
+  // The API already returns Pokédex order, and filter() preserves it.
+  const inScope = useMemo(
+    () =>
+      (pokemon.data ?? []).filter(
+        (p) => filters.showAlternateForms || p.is_default,
+      ),
+    [pokemon.data, filters.showAlternateForms],
+  );
+
   const visible = useMemo(() => {
-    const all = pokemon.data ?? [];
+    // Search the displayed name, so "charizard mega" finds `charizard-mega-x`.
     const search = filters.search.trim().toLowerCase();
-    const matches = all.filter(
+    const matches = inScope.filter(
       (p) =>
-        (filters.showAlternateForms || p.is_default) &&
         (!filters.type || getPokemonTypes(p).includes(filters.type)) &&
-        (!search || p.name.includes(search)),
+        (!search || displayName(p.name).toLowerCase().includes(search)),
     );
-    const compare =
-      filters.sort === "id"
-        ? byPokedexNumber
-        : filters.sort === "name"
-          ? (a: Pokemon, b: Pokemon) => a.name.localeCompare(b.name)
-          : // Stats sort highest first — nobody looks for the slowest Pokémon.
-            (a: Pokemon, b: Pokemon) =>
-              b[filters.sort as StatKey] - a[filters.sort as StatKey];
-    return matches.sort(compare);
-  }, [pokemon.data, filters]);
+    if (filters.sort === "id") return matches;
+    return matches.sort(
+      filters.sort === "name"
+        ? (a: Pokemon, b: Pokemon) => a.name.localeCompare(b.name)
+        : (a: Pokemon, b: Pokemon) =>
+            b[filters.sort as StatKey] - a[filters.sort as StatKey],
+    );
+  }, [inScope, filters]);
 
   return (
     <section className="flex min-w-0 flex-1 flex-col gap-3">
@@ -52,7 +52,7 @@ export function Pokedex({
         filters={filters}
         onChange={(patch) => setFilters({ ...filters, ...patch })}
         showing={visible.length}
-        total={pokemon.data?.length ?? 0}
+        total={inScope.length}
       />
       {pokemon.isPending && (
         <p className="text-sm text-slate-500">Loading the Pokédex…</p>

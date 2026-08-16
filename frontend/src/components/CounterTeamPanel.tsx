@@ -145,6 +145,7 @@ export function CounterTeamPanel({ teamId, disabled }: Props) {
           <a
             href="https://pokemondb.net/type"
             target="_blank"
+            rel="noreferrer"
             className="underline"
           >
             type advantage
@@ -155,7 +156,7 @@ export function CounterTeamPanel({ teamId, disabled }: Props) {
           <li>
             From every Pokémon with a type advantage, we pick one at random whose stat value is within 20% of the opponent's value.
           </li>
-          <li>If none are that close, we widen the range to 25%, then 30%</li>
+          <li>If none are that close, we widen the range to 30%, then 40%</li>
           <li>If still none, we pick any Pokémon with a type advantage at random</li>
           <li>If nothing has a type advantage, we pick any at random</li>
           <li>

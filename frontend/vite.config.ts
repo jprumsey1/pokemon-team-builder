@@ -7,5 +7,4 @@ export default defineConfig({
   // Proxying rather than CORS: the browser only ever talks to this origin, so the
   // session cookie behaves in dev exactly as it does behind FastAPI in production.
   server: { proxy: { '/api': 'http://localhost:8000' } },
-  build: { outDir: '../backend/app/static', emptyOutDir: true },
 })

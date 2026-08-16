@@ -58,9 +58,9 @@ export const setTeamMembers = (teamId: number, pokemonIds: number[]) =>
   });
 
 export const counterTeam = (teamId: number, statMetric: StatMetricName) =>
-  request<TeamMember[]>(
-    `/teams/${teamId}/counter?stat_metric=${statMetric}`,
-    { method: "POST" },
-  );
+  request<TeamMember[]>(`/teams/${teamId}/counter`, {
+    method: "POST",
+    ...body({ stat_metric: statMetric }),
+  });
 
 export const getAlerts = () => request<Alert[]>("/teams/alerts");

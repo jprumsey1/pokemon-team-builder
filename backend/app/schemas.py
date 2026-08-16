@@ -4,6 +4,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.lib.counter_team import StatMetricName
+
 
 class PokemonOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -55,6 +57,10 @@ class TeamIn(BaseModel):
 
 class TeamMembersIn(BaseModel):
     pokemon_ids: list[int] = Field(max_length=6)
+
+
+class CounterTeamIn(BaseModel):
+    stat_metric: StatMetricName = "base_stat_total"
 
 
 class AlertPokemon(BaseModel):

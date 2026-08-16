@@ -1,12 +1,4 @@
-"""Sync PokéAPI data to our tables.
-
-
-Trim payloads to data the team builder app cares about.
-Logs what changed as a `PokemonChangeEvent`.
-
-Changes are rare and PokeAPI is a free, public API, so this
-should be run as a periodic background task.
-"""
+"""Sync PokéAPI data to our tables, logging what changed as a `PokemonChangeEvent`."""
 
 import asyncio
 import logging
@@ -69,7 +61,14 @@ async def sync_pokemon(
                 result.failed += 1
                 continue
 
-            upstream = _trim(raw)
+            try:
+                upstream = _trim(raw)
+            except KeyError, TypeError:
+                # one bad payload shouldn't abort the whole sync
+                logger.warning("pokemon %d: unexpected payload shape", pokemon_id)
+                result.failed += 1
+                continue
+
             cached = cached_by_id.get(pokemon_id)
             if cached is None:
                 # Inserts never emit events, only changes
@@ -114,7 +113,7 @@ async def sync_type_matchup(session: AsyncSession) -> int:
         damage_relations = await client.get_type_damage_relations()
 
     type_matchups = {(a, d): 1.0 for a in damage_relations for d in damage_relations}
-    for name, relations in damage_relations.items():
+    for type_name, relations in damage_relations.items():
         # Ingest attacking side only (`damage_to`) and
         # skip the defending side (`damage_from`) to avoid double-counting.
         for key, multiplier in (
@@ -122,10 +121,10 @@ async def sync_type_matchup(session: AsyncSession) -> int:
             ("half_damage_to", 0.5),
             ("no_damage_to", 0.0),
         ):
-            for other in relations[key]:
+            for defending_type_name in relations[key]:
                 # Relations can name a type outside the 18, so skip rather than KeyError.
-                if (name, other["name"]) in type_matchups:
-                    type_matchups[(name, other["name"])] = multiplier
+                if (type_name, defending_type_name["name"]) in type_matchups:
+                    type_matchups[(type_name, defending_type_name["name"])] = multiplier
 
     await session.execute(delete(TypeMatchup))
     session.add_all(
@@ -138,7 +137,7 @@ async def sync_type_matchup(session: AsyncSession) -> int:
 
 
 def _trim(raw_pokemon: dict) -> dict:
-    """Convert one PokéAPI /pokemon payload down to our thirteen columns."""
+    """Convert one PokeAPI /pokemon payload down to our columns."""
     types = {t["slot"]: t["type"]["name"] for t in raw_pokemon["types"]}
     stats = {s["stat"]["name"]: s["base_stat"] for s in raw_pokemon["stats"]}
     return {
@@ -159,10 +158,7 @@ def _trim(raw_pokemon: dict) -> dict:
 
 
 async def sync_all() -> None:
-    """Run a full sync of relevant PokeAPI data to the team builder database.
-
-    Only needs to be run once on initial setup to seed Pokemon and 18 base types.
-    """
+    """Only needs to be run once on initial setup to seed Pokemon and the 18 base types."""
     async with session_factory() as session:
         await sync_type_matchup(session)
         await sync_pokemon(session)

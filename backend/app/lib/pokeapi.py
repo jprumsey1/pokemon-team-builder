@@ -23,8 +23,6 @@ def id_from_url(url: str) -> int:
 
 
 class PokeAPIClient(httpx.AsyncClient):
-    """PokéAPI's endpoints and retry policy."""
-
     def __init__(self, **kwargs) -> None:
         super().__init__(
             base_url=settings.pokeapi_base_url,
@@ -41,7 +39,7 @@ class PokeAPIClient(httpx.AsyncClient):
                 response.raise_for_status()
                 return response.json()
             except httpx.HTTPStatusError as exc:
-                # A 404 is an answer, not a hiccup — retrying it just wastes the sweep.
+                # Only 5xx is worth a retry; a 404 answers the question.
                 if exc.response.status_code < 500 or attempt == ATTEMPTS:
                     raise
             except httpx.TransportError:  # TimeoutException is a subclass
@@ -80,8 +78,8 @@ class PokeAPIClient(httpx.AsyncClient):
                 try:
                     return pokemon_id, await self.get_json(f"/pokemon/{pokemon_id}/")
                 except httpx.HTTPError as exc:
-                    # A failed fetch is never "this Pokémon is gone" — the caller
-                    # leaves the row alone rather than deleting it.
+                    # None means "fetch failed", not "deleted upstream": the caller
+                    # leaves the existing row alone.
                     logger.warning("pokemon %d failed: %r", pokemon_id, exc)
                     return pokemon_id, None
 

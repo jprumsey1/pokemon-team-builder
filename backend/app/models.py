@@ -1,10 +1,4 @@
-"""ORM data models.
-
-Assumptions:
-  * `pokemon.id` is PokeAPI's own id, not a surrogate key. Other tables use a generated surrogate key.
-  * `type_1` / `type_2` make 3+ unrepresentable in the database. We assume a Pokemon has 1-2 types.
-  * `team_pokemon` is a many-to-many mapping table keyed on `(team_id, position)`, so ordering is enforced by the database.
-"""
+"""ORM data models."""
 
 from datetime import datetime
 
@@ -13,7 +7,6 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
-    Index,
     Integer,
     MetaData,
     String,
@@ -55,22 +48,20 @@ class User(Base):
 
 
 class Pokemon(Base):
-    """PokeAPI Pokemon data.
-
-    Refreshed by background process only when something actually changed."""
+    """PokeAPI Pokemon data, written only by the sync job."""
 
     __tablename__ = "pokemon"
 
-    # PokéAPI's id: 1–1025 are base forms, 10001+ are variants.
+    # PokeAPI's id 1–1025 are Pokedex numbers, 10001+ are variants.
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
-    name: Mapped[str] = mapped_column(String(100), index=True)
+    name: Mapped[str] = mapped_column(String(100))
 
-    # Used to groups variants with their base form in app (charizard, charizard-mega-x)
+    # Groups variants with their base form in app (charizard, charizard-mega-x)
     species_id: Mapped[int] = mapped_column(Integer, index=True)
     is_default: Mapped[bool] = mapped_column(Boolean)
 
-    type_1: Mapped[str] = mapped_column(String(20), index=True)
-    type_2: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
+    type_1: Mapped[str] = mapped_column(String(20))
+    type_2: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     hp: Mapped[int] = mapped_column(Integer)
     attack: Mapped[int] = mapped_column(Integer)
@@ -108,17 +99,14 @@ class Team(Base):
 
 
 class TeamPokemon(Base):
-    """Team members with ordering (`position`). The composite primary key is the ordering guarantee."""
-
     __tablename__ = "team_pokemon"
-    __table_args__ = (Index("ix_team_pokemon_pokemon_id", "pokemon_id"),)
 
     team_id: Mapped[int] = mapped_column(
         ForeignKey("team.id", ondelete="CASCADE"), primary_key=True
     )
-    # Part of the primary key, guarantees no two Pokémon occupy the same slot.
+    # Part of the primary key so that no two Pokémon occupy the same slot
     position: Mapped[int] = mapped_column(Integer, primary_key=True)
-    pokemon_id: Mapped[int] = mapped_column(ForeignKey("pokemon.id"))
+    pokemon_id: Mapped[int] = mapped_column(ForeignKey("pokemon.id"), index=True)
 
     team: Mapped[Team] = relationship(back_populates="members")
     pokemon: Mapped[Pokemon] = relationship(lazy="joined")
@@ -131,14 +119,13 @@ class PokemonChangeEvent(Base):
     """
 
     __tablename__ = "pokemon_change_event"
-    __table_args__ = (Index("ix_pce_detected_at", "detected_at"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     pokemon_id: Mapped[int] = mapped_column(
         ForeignKey("pokemon.id", ondelete="CASCADE"), index=True
     )
     detected_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
+        DateTime(timezone=True), server_default=func.now(), index=True
     )
     changes: Mapped[list[dict]] = mapped_column(JSONB)
 

@@ -15,7 +15,7 @@ router = APIRouter(tags=["pokemon"])
 @router.get("", response_model=list[PokemonOut])
 async def list_pokemon(db: SessionDep) -> Sequence[Pokemon]:
     # Sorted so variants sit directly under the base form
-    # (i.e. Mega Charizard X next to Charizard)
+    # (e.g. Mega Charizard X next to Charizard)
     rows = await db.scalars(
         select(Pokemon).order_by(
             Pokemon.species_id, Pokemon.is_default.desc(), Pokemon.id

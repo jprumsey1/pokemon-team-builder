@@ -1,23 +1,4 @@
-"""Counter team generation.
-
-Given an opposing team, pick one counter for each of its members.
-
-Each opponent is handled independently, in order:
-1. Create a candidate pool of type-advantaged Pokemon. A candidate qualifies if one of
-   its types deals at least 2x damage to the opponent.
-2. Narrow that pool to candidates of comparable "strength" is within +/- 20% of the opponent's.
-   If nobody qualifies, widen the band by 5% and retry (up to three times total).
-3. If nobody qualifies, choose randomly from the pool of type-advantaged Pokemon.
-4. If nobody qualifies even after the random pick, choose randomly from the entire candidate pool.
-
-Duplicates are not allowed, and a Pokemon cannot oppose itself.
-
-"Strength" is whatever the caller's StatMetric measures. Base stat total by default,
-or speed, bulk, and so on. Callers select one by name (see STAT_METRICS).
-
-Randomness comes from an injected `random.Random` so tests can seed it. Otherwise, the
-same team may produce different results on each call.
-"""
+"""Counter team generation: one counter per opposing team member, no repeats."""
 
 import random
 from collections.abc import Callable, Sequence
@@ -31,14 +12,11 @@ type TypeMatchupChart = dict[str, dict[str, float]]
 SUPER_EFFECTIVE = 2.0
 
 STAT_BAND_START = 0.20
-STAT_BAND_STEP = 0.05
+STAT_BAND_STEP = 0.10
 MAX_ITERATIONS_UNTIL_RANDOM_PICK = 3
 
 # A metric reduces a Pokemon to one comparable number.
-# Can substitute for speed only, attack, or any formula
 StatMetric = Callable[[Pokemon], float]
-
-# StatMetric implementations:
 
 
 def base_stat_total(pokemon: Pokemon) -> float:
@@ -126,11 +104,8 @@ def _get_counter_pokemon(
     stat_metric: StatMetric,
 ) -> Pokemon:
     """Select one counter for `opponent` from `candidates` (already excludes used picks)."""
-    # Filter candidates by type advantage first, then iteratively by stat band
     candidates_with_type_advantage = [
-        c
-        for c in candidates
-        if has_type_advantage(c, opponent, type_matchup_chart) and c.id != opponent.id
+        c for c in candidates if has_type_advantage(c, opponent, type_matchup_chart)
     ]
     band = STAT_BAND_START
     for _ in range(MAX_ITERATIONS_UNTIL_RANDOM_PICK):
@@ -142,27 +117,28 @@ def _get_counter_pokemon(
         if candidates_within_stat_band:
             return rng.choice(candidates_within_stat_band)
         band += STAT_BAND_STEP
-    # If we reach here, no candidates were within the stat band in any iteration
     if candidates_with_type_advantage:
         return rng.choice(candidates_with_type_advantage)
-    # Otherwise, fall back to a random candidate
     return rng.choice(candidates)
 
 
 def build_counter_team(
     opposing: Sequence[Pokemon],
     candidates: Sequence[Pokemon],
-    chart: TypeMatchupChart,
+    type_matchup_chart: TypeMatchupChart,
     rng: random.Random,
     stat_metric: StatMetricName = "base_stat_total",
 ) -> list[Pokemon]:
-    """Retrieve a counter Pokemon for each in `opposing`, with no repeats."""
+    """Retrieve a counter Pokemon for each in `opposing`, with no repeats.
+
+    `candidates` must already exclude `opposing`, or a Pokemon can counter itself.
+    """
     picks: list[Pokemon] = []
     chosen_ids: set[int] = set()
     for opponent in opposing:
         pool = [c for c in candidates if c.id not in chosen_ids]
         pick = _get_counter_pokemon(
-            opponent, pool, chart, rng, STAT_METRICS[stat_metric]
+            opponent, pool, type_matchup_chart, rng, STAT_METRICS[stat_metric]
         )
         picks.append(pick)
         chosen_ids.add(pick.id)

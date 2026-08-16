@@ -19,7 +19,6 @@ export default function App() {
   if (!me.data) return <SignIn />;
 
   const allTeams = teams.data ?? [];
-  // Falls back to the first team
   const activeTeam =
     allTeams.find((team) => team.id === activeTeamId) ?? allTeams[0] ?? null;
   const memberIds = (activeTeam?.members ?? []).map((m) => m.pokemon.id);
@@ -82,6 +81,7 @@ export default function App() {
           className="underline"
           href="https://pokeapi.co/"
           target="_blank"
+          rel="noreferrer"
         >
           PokéAPI
         </a>.
