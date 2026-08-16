@@ -132,13 +132,7 @@ export function CounterTeamPanel({ teamId, disabled }: Props) {
             ))}
           </ol>
 
-          {selectedPick ? (
-            <PokemonDetail pokemon={selectedPick.pokemon} />
-          ) : (
-            <p className="border-t border-slate-200 pt-3 text-xs text-slate-400">
-              Select a Pokémon to see its stats.
-            </p>
-          )}
+          {selectedPick && <PokemonDetail pokemon={selectedPick.pokemon} />}
         </>
       )}
 

@@ -18,7 +18,9 @@ def build_scheduler() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
         _scheduled_sync_pokemon,
-        CronTrigger(hour=settings.sync_hour, timezone=ZoneInfo(settings.sync_timezone)),
+        CronTrigger.from_crontab(
+            settings.sync_cron, timezone=ZoneInfo(settings.sync_timezone)
+        ),
         # After downtime, sweep once on the next start rather than once per day missed
         coalesce=True,
         misfire_grace_time=None,

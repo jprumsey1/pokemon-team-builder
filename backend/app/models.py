@@ -38,6 +38,7 @@ class Base(DeclarativeBase):
 
 
 class User(Base):
+    # `user` is a reserved word in postgres so we use plural table name
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -149,6 +150,7 @@ class TypeMatchup(Base):
 
     __tablename__ = "type_matchup"
 
+    # no FK by design, in case a new type is added to a pokemon before updating this table
     attacking_type: Mapped[str] = mapped_column(String(20), primary_key=True)
     defending_type: Mapped[str] = mapped_column(String(20), primary_key=True)
     multiplier: Mapped[float] = mapped_column(Float)
