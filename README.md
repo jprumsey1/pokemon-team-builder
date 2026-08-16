@@ -26,6 +26,12 @@ flowchart LR
   job -->|"daily fetch"| pokeapi
 ```
 
+## Assumptions
+
+- Teams have six members ordered by position.
+- Pokémon have at most two types and the application only displays 6 base stats. Counter teams are generated using these.
+- Damage multipliers come from PokéAPI. We only include 18 base types across the UI. Pokémon has more recently introduced special types like Stellar that don't cleanly fit into the type matchup chart.
+
 ## Data
 
 A Postgres database stores relational data for users, teams, Pokémon data, and type matchups. The background sync job also writes Pokémon change events here, and the API reads them back.
@@ -86,12 +92,9 @@ Instead of executing SQL queries directly, the API and background sync job use S
 
 If the app required a more complex or flexible data model, a non-relational store might be suitable. For example, including Pokémon moves or other PokéAPI data available might make storing Pokémon as JSON documents simpler.
 
-### Assumptions
+### Storage Assumptions
 
-- Teams have six members ordered by position.
-- Pokémon have at most two types and the application only displays 6 base stats. Counter teams are generated using these.
 - `pokemon` includes one row per form. Alternate forms (i.e. "Mega" Pokémon) are stored separately (`species_id` is used to ensure alternate forms are ordered alongside their main form in application code).
-- Damage multipliers come from PokéAPI. We only include 18 base types across the UI. Pokémon has more recently introduced special types like Stellar that don't cleanly fit into the type matchup chart.
 - Type matchups are synced once a new database is set up and can't change without manually running `sync_type_matchup` in `backend/app/lib/sync.py`. Type matchup changes have only occurred a few times in Pokémon's history, so this is really a one-time setup.
 - The database keeps a log of Pokémon change events rather than user-level alerts. It is the application's responsibility to read these and generate "change alerts" for a user based on their teams' Pokémon.
 
@@ -123,7 +126,7 @@ TanStack Query abstracts away caching of server state. `frontend/src/api/queries
 
 There are no front end unit tests since most business logic exists on the server side.
 
-## Other Implementation Notes and Tradeoffs
+## Tradeoffs and Improvements
 
 - The API, SPA, and background sync job all run in the same Python process rather than deploying separately. This makes deployment straightforward and inexpensive, but makes horizontally scaling difficult. If two instances of the API run, there will be two background jobs running as well. Decoupling these and deploying static front end assets elsewhere would make scaling easier (i.e. two API processes behind a load balancer).
 - There is no real-time push of Pokémon change events. The front end re-fetches whenever the user returns to the tab, which is sufficient given that data changes rarely. If more frequent updates ever became a requirement, options include polling by the browser, server-side events pushed to clients, or a database trigger that notifies the API on an insert/update.
