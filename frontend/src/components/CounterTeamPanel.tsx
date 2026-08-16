@@ -149,18 +149,16 @@ export function CounterTeamPanel({ teamId, disabled }: Props) {
           >
             type advantage
           </a>{" "}
-          and has similar strength based on the stat formula you selected above.
+          and has similar strength based on the stat formula selected above.
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-slate-500">
           <li>
-            From every Pokémon with a type advantage, we pick one at random
-            whose value is within 20% of the opponent's.
+            From every Pokémon with a type advantage, we pick one at random whose stat value is within 20% of the opponent's value
           </li>
-          <li>If none qualify, we widen that to 25%, then 30%.</li>
-          <li>
-            If still none qualify, we pick any type-advantaged Pokémon at random.
-          </li>
-          <li>No Pokémon is picked twice and a Pokémon cannot counter itself.</li>
+          <li>If none are that close, we widen the range to 25%, then 30%</li>
+          <li>If still none, we pick any Pokémon with a type advantage at random</li>
+          <li>If nothing has a type advantage, we pick any at random</li>
+          <li>No Pokémon is picked twice and a Pokémon cannot counter itself</li>
         </ul>
       </details>
     </div>
