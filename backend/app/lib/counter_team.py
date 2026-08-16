@@ -2,6 +2,7 @@
 
 import random
 from collections.abc import Callable, Sequence
+from typing import Literal
 
 from app.models import Pokemon
 
@@ -18,14 +19,10 @@ MAX_ITERATIONS_UNTIL_RANDOM_PICK = 3
 # Can substitute for speed only, attack, or any formula
 StatMetric = Callable[[Pokemon], float]
 
-# StatMetric implementations
+# StatMetric implementations:
 
 
 def base_stat_total(pokemon: Pokemon) -> float:
-    """Returns the sum of the six base stats.
-
-    Default StatMetric used for comparison.
-    """
     return (
         pokemon.hp
         + pokemon.attack
@@ -34,6 +31,35 @@ def base_stat_total(pokemon: Pokemon) -> float:
         + pokemon.special_defense
         + pokemon.speed
     )
+
+
+def offensive_stats(pokemon: Pokemon) -> float:
+    return max(pokemon.attack, pokemon.special_attack)
+
+
+def speed(pokemon: Pokemon) -> float:
+    return pokemon.speed
+
+
+def defensive_stats(pokemon: Pokemon) -> float:
+    return max(pokemon.defense, pokemon.special_defense)
+
+def physical_bulk(pokemon: Pokemon) -> float:
+    return pokemon.defense * pokemon.hp
+
+
+# Client-selectable StatMetric formulas. Names are the wire format.
+StatMetricName = Literal[
+    "base_stat_total", "offensive_stats", "speed", "defensive_stats", "physical_bulk"
+]
+
+STAT_METRICS: dict[StatMetricName, StatMetric] = {
+    "base_stat_total": base_stat_total,
+    "offensive_stats": offensive_stats,
+    "speed": speed,
+    "defensive_stats": defensive_stats,
+    "physical_bulk": physical_bulk,
+}
 
 
 def _get_types(pokemon: Pokemon) -> tuple[str, ...]:
@@ -118,14 +144,16 @@ def build_counter_team(
     candidates: Sequence[Pokemon],
     chart: TypeMatchupChart,
     rng: random.Random,
-    metric: StatMetric = base_stat_total,
+    stat_metric: StatMetricName = "base_stat_total",
 ) -> list[Pokemon]:
     """Retrieve a counter Pokemon for each in `opposing`, with no repeats."""
     picks: list[Pokemon] = []
     chosen_ids: set[int] = set()
     for opponent in opposing:
         pool = [c for c in candidates if c.id not in chosen_ids]
-        pick = _get_counter_pokemon(opponent, pool, chart, rng, metric)
+        pick = _get_counter_pokemon(
+            opponent, pool, chart, rng, STAT_METRICS[stat_metric]
+        )
         picks.append(pick)
         chosen_ids.add(pick.id)
     return picks

@@ -9,7 +9,11 @@ from sqlalchemy import delete, exists, select
 from sqlalchemy.orm import joinedload, selectinload
 
 from app.api.dependencies import CurrentUser, SessionDep
-from app.lib.counter_team import TypeMatchupChart, build_counter_team
+from app.lib.counter_team import (
+    StatMetricName,
+    TypeMatchupChart,
+    build_counter_team,
+)
 from app.models import Pokemon, PokemonChangeEvent, Team, TeamPokemon, TypeMatchup
 from app.schemas import (
     AlertOut,
@@ -118,7 +122,10 @@ async def list_alerts(
 
 @router.post("/{team_id}/counter")
 async def counter_team(
-    team_id: int, user: CurrentUser, db: SessionDep
+    team_id: int,
+    user: CurrentUser,
+    db: SessionDep,
+    stat_metric: StatMetricName = "base_stat_total",
 ) -> list[TeamMemberOut]:
     """A counter for each member matched by position.
 
@@ -135,7 +142,11 @@ async def counter_team(
     )
     type_matchup_chart = await _get_type_matchup_chart(db)
     picks = build_counter_team(
-        opposing, candidates.all(), type_matchup_chart, random.Random()
+        opposing,
+        candidates.all(),
+        type_matchup_chart,
+        random.Random(),
+        stat_metric=stat_metric,
     )
     return [
         TeamMemberOut(position=member.position, pokemon=PokemonOut.model_validate(pick))

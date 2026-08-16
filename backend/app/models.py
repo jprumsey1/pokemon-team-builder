@@ -54,8 +54,8 @@ class User(Base):
 
 
 class Pokemon(Base):
-    """PokeAPI Pokemon data. 
-    
+    """PokeAPI Pokemon data.
+
     Refreshed by background process only when something actually changed."""
 
     __tablename__ = "pokemon"
@@ -151,5 +151,4 @@ class TypeMatchup(Base):
 
     attacking_type: Mapped[str] = mapped_column(String(20), primary_key=True)
     defending_type: Mapped[str] = mapped_column(String(20), primary_key=True)
-    # Float is exact here: every multiplier is 0, 1/2, 1 or 2, and so is every product.
     multiplier: Mapped[float] = mapped_column(Float)
