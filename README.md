@@ -21,11 +21,12 @@ If running outside containers:
 
 These datasets rarely change and re-running is safe (will just request resources from PokéAPI again). Normally, the Pokémon data sync portion runs as a scheduled background job (see [Background Sync Job](#background-sync-job))
 
-You can run the equivalent against a running API as well, which is how data gets seeded data in production.
+You can run the Pokémon sync against a running API as well. Pass ids to sync just those.
 
 ```bash
-curl -X POST -H "X-Admin-Secret: dev-admin-secret" localhost:8000/api/admin/sync-type-matchup
 curl -X POST -H "X-Admin-Secret: dev-admin-secret" localhost:8000/api/admin/sync
+curl -X POST -H "X-Admin-Secret: dev-admin-secret" -H 'content-type: application/json' \
+  -d '[25]' localhost:8000/api/admin/sync
 ```
 
 ### Startup

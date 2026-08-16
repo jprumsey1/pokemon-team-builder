@@ -47,15 +47,21 @@ class SyncPokemonResult:
     failed: int = 0
 
 
-async def sync_pokemon(session: AsyncSession) -> SyncPokemonResult:
-    """Fetch pokemon data from PokéAPI and synchronize it with the local database."""
+async def sync_pokemon(
+    session: AsyncSession, pokemon_ids: list[int] | None = None
+) -> SyncPokemonResult:
+    """Fetch pokemon data from PokeAPI and synchronize it with the local database."""
+    cached_query = select(Pokemon)
+    if pokemon_ids:
+        cached_query = cached_query.where(Pokemon.id.in_(pokemon_ids))
+
     async with PokeAPIClient() as client:
-        pokemon_ids = await client.get_all_pokemon_ids()
+        pokemon_ids = pokemon_ids or await client.get_all_pokemon_ids()
         logger.info("syncing %d pokemon", len(pokemon_ids))
 
         result = SyncPokemonResult(checked=len(pokemon_ids))
         cached_by_id = {
-            pokemon.id: pokemon for pokemon in await session.scalars(select(Pokemon))
+            pokemon.id: pokemon for pokemon in await session.scalars(cached_query)
         }
 
         async for pokemon_id, raw in client.iter_pokemon(pokemon_ids):
