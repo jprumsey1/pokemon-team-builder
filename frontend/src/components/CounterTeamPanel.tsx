@@ -153,11 +153,17 @@ export function CounterTeamPanel({ teamId, disabled }: Props) {
         </p>
         <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-slate-500">
           <li>
-            From every Pokémon with a type advantage, we pick one at random whose stat value is within 20% of the opponent's value
+            From every Pokémon with a type advantage, we pick one at random whose stat value is within 20% of the opponent's value.
           </li>
           <li>If none are that close, we widen the range to 25%, then 30%</li>
           <li>If still none, we pick any Pokémon with a type advantage at random</li>
           <li>If nothing has a type advantage, we pick any at random</li>
+          <li>
+            A Pokémon has a type advantage if <em>one</em> of its types deals at
+            least 2× damage to the opponent, counting both of the opponent's types
+            together. We only look at what the counter does to the opponent, not the other
+            way around.
+          </li>
           <li>No Pokémon is picked twice and a Pokémon cannot counter itself</li>
         </ul>
       </details>
