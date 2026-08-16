@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { useMe, useSetTeamMembers, useSignOut, useTeams } from "./api/queries";
 import { AlertBanner } from "./components/AlertBanner";
+import { CounterTeamPanel } from "./components/CounterTeamPanel";
 import { Pokedex } from "./components/Pokedex";
 import { SignIn } from "./components/SignIn";
 import { TeamPanel } from "./components/TeamPanel";
@@ -17,10 +18,10 @@ export default function App() {
   if (me.isPending) return <div className="min-h-dvh bg-slate-100" />;
   if (!me.data) return <SignIn />;
 
-  const all = teams.data ?? [];
-  // Falls back to the first team so a deleted or never-chosen active id still lands somewhere.
+  const allTeams = teams.data ?? [];
+  // Falls back to the first team
   const activeTeam =
-    all.find((team) => team.id === activeTeamId) ?? all[0] ?? null;
+    allTeams.find((team) => team.id === activeTeamId) ?? allTeams[0] ?? null;
   const memberIds = (activeTeam?.members ?? []).map((m) => m.pokemon.id);
 
   const setMembers = (pokemonIds: number[]) => {
@@ -47,28 +48,31 @@ export default function App() {
 
       <main className="flex flex-col-reverse gap-4 p-4 lg:flex-row">
         <Pokedex
-          disabledReason={
-            !activeTeam
-              ? "Create a team first"
-              : memberIds.length >= TEAM_SIZE
-                ? "Team is full"
-                : setMembersMutation.isPending
-                  ? "Saving…"
-                  : undefined
+          disabled={
+            !activeTeam ||
+            memberIds.length >= TEAM_SIZE ||
+            setMembersMutation.isPending
           }
           onAdd={(pokemon) => setMembers([...memberIds, pokemon.id])}
         />
-        <aside className="lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:w-80 lg:shrink-0 lg:self-start lg:overflow-y-auto">
+        <aside className="space-y-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:w-80 lg:shrink-0 lg:self-start lg:overflow-y-auto">
           <TeamPanel
-            // key: a slot index belongs to one team, so switching teams resets it.
+            // a slot index belongs to one team, so switching teams resets key
             key={activeTeam?.id}
-            teams={all}
+            teams={allTeams}
             activeTeam={activeTeam}
             memberIds={memberIds}
             onSelectTeam={setActiveTeamId}
             onSetMembers={setMembers}
             saving={setMembersMutation.isPending}
           />
+          {activeTeam && (
+            <CounterTeamPanel
+              key={activeTeam.id}
+              teamId={activeTeam.id}
+              disabled={memberIds.length === 0}
+            />
+          )}
         </aside>
       </main>
 

@@ -3,6 +3,14 @@
 export type StatKey =
   "hp" | "attack" | "defense" | "special_attack" | "special_defense" | "speed";
 
+/** Mirrors StatMetricName in backend/app/lib/counter_team.py */
+export type StatMetricName =
+  | "base_stat_total"
+  | "offensive_stats"
+  | "speed"
+  | "defensive_stats"
+  | "physical_bulk";
+
 export interface Pokemon {
   id: number;
   name: string;

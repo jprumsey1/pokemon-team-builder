@@ -5,19 +5,18 @@ import { TypeChip } from "./TypeChip";
 
 interface Props {
   pokemon: Pokemon;
-  /** Why this card can't be added, or undefined when it can. */
-  disabledReason?: string;
+  disabled: boolean;
   onAdd: (pokemon: Pokemon) => void;
 }
 
-export function PokemonCard({ pokemon, disabledReason, onAdd }: Props) {
+export function PokemonCard({ pokemon, disabled, onAdd }: Props) {
   return (
     <button
       type="button"
-      disabled={!!disabledReason}
+      disabled={disabled}
       onClick={() => onAdd(pokemon)}
-      title={disabledReason ?? `Add ${displayName(pokemon.name)} to team`}
-      className="flex flex-col gap-1 rounded-lg border border-slate-200 bg-white p-2 text-left transition enabled:hover:border-slate-400 enabled:hover:shadow-sm disabled:opacity-40"
+      title={`Add ${displayName(pokemon.name)} to team`}
+      className="flex flex-col gap-1 rounded-lg border border-slate-200 bg-white p-2 text-left transition enabled:hover:border-slate-400 enabled:hover:shadow-sm disabled:cursor-not-allowed"
     >
       <div className="flex items-center justify-between text-[10px] text-slate-400">
         <span>#{pokemon.id}</span>

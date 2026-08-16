@@ -27,6 +27,6 @@ app.include_router(api_router, prefix="/api")
 
 static = Path(__file__).parent / "static"
 if static.is_dir():
-    # Prod/container only: serves static files from root URL
+    # Necessary for container only: serves static files from root URL
     # local front end can be run outside of this setup with `npm run dev`
     app.mount("/", StaticFiles(directory=static, html=True))

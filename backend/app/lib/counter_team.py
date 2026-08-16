@@ -5,7 +5,7 @@ Given an opposing team, pick one counter for each of its members.
 Each opponent is handled independently, in order:
 1. Create a candidate pool of type-advantaged Pokemon. A candidate qualifies if one of
    its types deals at least 2x damage to the opponent.
-2. Narrow that pool to candidates of comparable "strength" is within +/- 25% of the opponent's. 
+2. Narrow that pool to candidates of comparable "strength" is within +/- 20% of the opponent's.
    If nobody qualifies, widen the band by 5% and retry (up to three times total).
 3. If nobody qualifies, choose randomly from the pool of type-advantaged Pokemon.
 4. If nobody qualifies even after the random pick, choose randomly from the entire candidate pool.
@@ -30,7 +30,7 @@ type TypeMatchupChart = dict[str, dict[str, float]]
 
 SUPER_EFFECTIVE = 2.0
 
-STAT_BAND_START = 0.25
+STAT_BAND_START = 0.20
 STAT_BAND_STEP = 0.05
 MAX_ITERATIONS_UNTIL_RANDOM_PICK = 3
 

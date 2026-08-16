@@ -110,7 +110,7 @@ def test_build_counter_team_prefers_a_type_and_stat_matched_candidate():
 
 def test_build_counter_team_widens_the_band_until_a_candidate_qualifies():
     # Arrange — the only type-advantaged candidate sits ~35% below the opponent's total,
-    # outside the starting 25% band but inside the band after widening
+    # outside the starting 20% band but inside the band after widening
     opponent = make_pokemon(
         1, "opponent", "fire", "flying", hp=90, attack=90, defense=90
     )
@@ -127,7 +127,7 @@ def test_build_counter_team_widens_the_band_until_a_candidate_qualifies():
 
 def test_build_counter_team_falls_back_to_random_when_no_candidate_is_in_any_band():
     # Arrange — type-advantaged, but nowhere near the opponent's stat total even after
-    # 3 widenings (25% -> 40%); must still be picked rather than leaving a slot empty
+    # 3 widenings (20% -> 35%); must still be picked rather than leaving a slot empty
     opponent = make_pokemon(
         1, "opponent", "fire", "flying", hp=90, attack=90, defense=90
     )

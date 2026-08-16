@@ -17,11 +17,10 @@ const byPokedexNumber = (a: Pokemon, b: Pokemon) =>
   a.id - b.id;
 
 export function Pokedex({
-  disabledReason,
+  disabled,
   onAdd,
 }: {
-  /** Why cards can't be added right now, or undefined when they can. */
-  disabledReason?: string;
+  disabled: boolean;
   onAdd: (p: Pokemon) => void;
 }) {
   const pokemon = usePokemon();
@@ -48,7 +47,7 @@ export function Pokedex({
   }, [pokemon.data, filters]);
 
   return (
-    <section className="flex min-w-0 flex-col gap-3">
+    <section className="flex min-w-0 flex-1 flex-col gap-3">
       <PokedexControls
         filters={filters}
         onChange={(patch) => setFilters({ ...filters, ...patch })}
@@ -61,12 +60,12 @@ export function Pokedex({
       {pokemon.isError && (
         <p className="text-sm text-red-600">Could not load the Pokédex.</p>
       )}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8">
         {visible.map((p) => (
           <PokemonCard
             key={p.id}
             pokemon={p}
-            disabledReason={disabledReason}
+            disabled={disabled}
             onAdd={onAdd}
           />
         ))}

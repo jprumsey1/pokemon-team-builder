@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import * as api from "./client";
+import type { StatMetricName } from "./types";
 
 export const useMe = () =>
   // retry: false, or three retries of a 401 hold the sign-in form back.
@@ -73,3 +74,15 @@ export const useSetTeamMembers = () =>
     ({ teamId, pokemonIds }: { teamId: number; pokemonIds: number[] }) =>
       api.setTeamMembers(teamId, pokemonIds),
   );
+
+export const useCounterTeam = () =>
+  useMutation({
+    mutationFn: ({
+      teamId,
+      statMetric,
+    }: {
+      teamId: number;
+      statMetric: StatMetricName;
+    }) => api.counterTeam(teamId, statMetric),
+    meta: { handled: true },
+  });

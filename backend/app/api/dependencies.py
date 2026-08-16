@@ -33,6 +33,7 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
 def require_admin(x_admin_secret: Annotated[str, Header()] = "") -> None:
+    """Require the correct admin secret in the X-Admin-Secret header."""
     # compare_digest rather than ==, so a wrong secret can't be found a byte at a time.
     if not secrets.compare_digest(x_admin_secret, settings.admin_secret):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Bad admin secret")

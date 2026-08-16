@@ -1,4 +1,11 @@
-import type { Alert, Pokemon, Team, User } from "./types";
+import type {
+  Alert,
+  Pokemon,
+  StatMetricName,
+  Team,
+  TeamMember,
+  User,
+} from "./types";
 
 export class ApiError extends Error {
   status: number;
@@ -49,5 +56,11 @@ export const setTeamMembers = (teamId: number, pokemonIds: number[]) =>
     method: "PUT",
     ...body({ pokemon_ids: pokemonIds }),
   });
+
+export const counterTeam = (teamId: number, statMetric: StatMetricName) =>
+  request<TeamMember[]>(
+    `/teams/${teamId}/counter?stat_metric=${statMetric}`,
+    { method: "POST" },
+  );
 
 export const getAlerts = () => request<Alert[]>("/teams/alerts");
