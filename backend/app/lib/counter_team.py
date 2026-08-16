@@ -1,4 +1,23 @@
-"""Counter team generation."""
+"""Counter team generation.
+
+Given an opposing team, pick one counter for each of its members.
+
+Each opponent is handled independently, in order:
+1. Create a candidate pool of type-advantaged Pokemon. A candidate qualifies if one of
+   its types deals at least 2x damage to the opponent.
+2. Narrow that pool to candidates of comparable "strength" is within +/- 25% of the opponent's. 
+   If nobody qualifies, widen the band by 5% and retry (up to three times total).
+3. If nobody qualifies, choose randomly from the pool of type-advantaged Pokemon.
+4. If nobody qualifies even after the random pick, choose randomly from the entire candidate pool.
+
+Duplicates are not allowed, and a Pokemon cannot oppose itself.
+
+"Strength" is whatever the caller's StatMetric measures. Base stat total by default,
+or speed, bulk, and so on. Callers select one by name (see STAT_METRICS).
+
+Randomness comes from an injected `random.Random` so tests can seed it. Otherwise, the
+same team may produce different results on each call.
+"""
 
 import random
 from collections.abc import Callable, Sequence
@@ -43,6 +62,7 @@ def speed(pokemon: Pokemon) -> float:
 
 def defensive_stats(pokemon: Pokemon) -> float:
     return max(pokemon.defense, pokemon.special_defense)
+
 
 def physical_bulk(pokemon: Pokemon) -> float:
     return pokemon.defense * pokemon.hp
@@ -105,17 +125,7 @@ def _get_counter_pokemon(
     rng: random.Random,
     stat_metric: StatMetric,
 ) -> Pokemon:
-    """Select one counter for `opponent` from `candidates` (already excludes used picks).
-
-    TODO:
-    1. type_pool = [c for c in candidates if has_type_advantage(c, opponent, type_matchup_chart)]
-    2. band = STAT_BAND_START; up to MAX_BAND_WIDENINGS times: filter type_pool by
-       within_stat_band(c, opponent, metric, band); if non-empty, rng.choice() it and stop;
-       otherwise band += STAT_BAND_STEP and retry.
-    3. Still nothing after all widenings? rng.choice(type_pool) — stat check dropped, type
-       advantage kept.
-    4. type_pool itself empty? rng.choice(pool) — last resort, guarantees a pick exists.
-    """
+    """Select one counter for `opponent` from `candidates` (already excludes used picks)."""
     # Filter candidates by type advantage first, then iteratively by stat band
     candidates_with_type_advantage = [
         c
