@@ -58,7 +58,7 @@ export default function App() {
         <aside className="space-y-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:w-80 lg:shrink-0 lg:self-start lg:overflow-y-auto">
           <TeamPanel
             // a slot index belongs to one team, so switching teams resets key
-            key={activeTeam?.id}
+            key={`team-${activeTeam?.id}`}
             teams={allTeams}
             activeTeam={activeTeam}
             memberIds={memberIds}
@@ -68,7 +68,7 @@ export default function App() {
           />
           {activeTeam && (
             <CounterTeamPanel
-              key={activeTeam.id}
+              key={`counter-${activeTeam.id}`}
               teamId={activeTeam.id}
               disabled={memberIds.length === 0}
             />
