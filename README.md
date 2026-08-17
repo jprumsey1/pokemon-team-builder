@@ -1,6 +1,6 @@
 # Pokémon Team Builder
 
-Web application for viewing Pokémon types and stats, building teams, and automatically generating counter teams using cached data from [PokéAPI](https://pokeapi.co/docs/v2).
+Web application for viewing Pokémon types and stats, building teams, and automatically generating counter teams using data from [PokéAPI](https://pokeapi.co/docs/v2).
 
 You can find the production site [here](https://pokemon-team-builder-xdnl.onrender.com/).
 
@@ -118,9 +118,15 @@ The job runs daily at 4AM ET, which is more than sufficient given that PokéAPI'
 
 If the data ingestion workflow ever became more complex (multiple data sources, more PokéAPI fields and entities, automated data quality checks or alerting, etc.), a separate orchestration solution like Airflow or Dagster would make sense.
 
+### Counter Team Generation
+
+`backend/app/lib/counter_team.py` picks one counter Pokémon per opposing Pokémon. A candidate qualifies if either of its types is super-effective against the opponent, and its stats are close to the opponent's.
+
+"Stats" here means a formula defined in `STAT_METRICS` that reduces a Pokémon to a single comparable number. These are hard-coded Python functions for now, but a future iteration could let a user write their own formula and parse it at runtime.
+
 ## Front End
 
-React single-page app built with Vite and styled with Tailwind. The front end code (e.g. React components, hooks for fetching server state) was largely AI-generated against the REST API contract and data flow specified here. TypeScript types are hand-written to match the back end's Pydantic models, which enforces the API contract at build time.
+React single-page app built with Vite and styled with Tailwind. The front end code (e.g. React components, hooks for fetching server state) was largely AI-generated based on the REST API contract and data flow. TypeScript types are hand-written to match the back end's Pydantic models, which enforces the API contract at build time.
 
 TanStack Query abstracts away caching of server state. `frontend/src/api/queries.ts` holds every read and write against the API. These are queries keyed by a name (e.g. `teams`, `pokemon`) that map one-to-one to an endpoint, and mutations for team writes and sign in/out.
 
@@ -134,9 +140,12 @@ There are no front end unit tests since most business logic exists on the server
 
 ## Deployment
 
-[Render](https://render.com/) hosts both service and database with automatic GitHub deploys. A managed solution eliminates infrastructure overhead since this is a small project. The service is containerized which would make deployment elsewhere simple.
+[Render](https://render.com/) hosts both service and database with automatic GitHub deploys. A managed solution eliminates infrastructure and CI/CD overhead since this is a small project. The service is containerized which would make deployment elsewhere simple.
 
 ## Local Development Setup
+
+<details>
+<summary>Requirements, startup, tests, and migrations</summary>
 
 This app can be run **(A)** fully in containers or **(B)** with FastAPI and Vite dev servers running on the host.
 
@@ -200,3 +209,5 @@ uv run alembic revision --autogenerate -m "<Message>"
 # Read and verify migration script!
 uv run alembic upgrade head
 ```
+
+</details>
